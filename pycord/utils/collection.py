@@ -25,8 +25,8 @@ class Collection:
         """ Add a collection to self """
         if isinstance(other, Collection):
             if isinstance(other.instance, self.instance):
-            [self.add(item) for item in other]
-        else if isinstance(other, self.instance):
+                [self.add(item) for item in other]
+        elif isinstance(other, self.instance):
             self.add(other)
         else:
             raise ValueError("Item is not collection or instance of")
@@ -46,8 +46,8 @@ class Collection:
             raise ValueError(f"{value} is not instance of {self.instance}")
         for pos, item in enumerate(self.__iter__()):
             if getattr(item, self.index, None) == key:
-            self.data[pos] = value
-            return
+                self.data[pos] = value
+                return
         self.data.append(value)
 
     def add(self, item):
@@ -63,17 +63,17 @@ class Collection:
         """ Remove item from collection """
         if isinstance(item, self.instance):
             if item in self.data:
-            self.data.remove(item)
+                self.data.remove(item)
         else:
             item = self[item]
             if item in self.data:
-            self.data.remove(item)
+                self.data.remove(item)
 
     def remove_if(self, **attrs):
         """ Remove items if meet attribute conditions """
         for i in range(len(self.data) - 1, -1, -1):
             if self.has_attrs(self.data[i], **attrs):
-            del self.data[i]
+                del self.data[i]
 
     def first(self):
         """ Get the first item in the object """
@@ -87,7 +87,7 @@ class Collection:
         """ Check if object has attrs """
         for key, value in attrs.items():
             if not getattr(obj, key, None) == value:
-            return False
+                return False
         return True
 
     def has(self, key):
@@ -96,7 +96,7 @@ class Collection:
             return self.__contains__(key)
         for item in self:
             if getattr(item, self.index, None) == key:
-            return True
+                return True
         return False
 
     def get(self, index):

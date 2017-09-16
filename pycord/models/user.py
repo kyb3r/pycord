@@ -1,3 +1,4 @@
+from .core import abstractmethod
 from .core import Snowflake, Sendable, Serializable
 
 class User(Snowflake, Sendable, Serializable):
@@ -13,10 +14,8 @@ class User(Snowflake, Sendable, Serializable):
             if key in data and data[key] is not None:
                 setattr(self, key, data[key])
 
-    @abstractmethod
     async def send(self, **kwargs):
         pass
 
-    @abstractmethod
     async def trigger_typing(self):
         pass

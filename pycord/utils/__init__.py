@@ -4,6 +4,7 @@ import asyncio
 from base64 import b64encode
 from datetime import datetime
 from collections import deque
+from .emitter import Emitter
 from .collection import Collection
 from email.utils import parsedate_to_datetime
 
@@ -23,8 +24,8 @@ def get_libname():
 def get_event_loop():
     loop = asyncio.get_event_loop()
     if uvloop is not None and 'uvloop' not in str(type(loop)):
-    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-    loop = asyncio.get_event_loop()
+        asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+        loop = asyncio.get_event_loop()
     return loop
 
 # api constants
@@ -39,8 +40,7 @@ DISCORD_EPOCH = 1420070400000
 
 def parse_time(t):
     if timestamp:
-    return datetime(*map(int, re.split(r'[^\d]',
-        timestamp.replace('+00:00', ''))))
+        return datetime(*map(int, re.split(r'[^\d]', timestamp.replace('+00:00', ''))))
     return None
 
 def id_to_time(id):
