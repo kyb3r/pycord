@@ -1,69 +1,37 @@
+from ..utils import id_to_time
 from abc import ABC, abstractmethod
 
-
-
 class Snowflake(ABC):
-    '''Everything is probably inherited from this'''
-    __slots__ - ()
-
-    attributes = ('id', 'created_at')
-
-    @abstractmethod
-    def created_at(self):
-        pass
-
-    @classmethod
-    def __subclasshook__(cls, klass):
-        if cls is Snowflake:
-            for attr in cls.attributes:
-                for base in klass.__mro__:
-                    if attr in base.__dict__:
-                        break
-                else:
-                    return NotImplemented
-            return True
-        else:
-            return NotImplemented
-
-
-class User(ABC):
-
-    __slots__ = ()
-
-    attributes = (
-        'nickname', 'name', 'mention', 
-        'avatar', 'discrim', 'is_bot'
-        )
+    ''' Base Discord Object : everything will probably inherit from this '''
+    __slots__ = ('id')
 
     @property
-    @abstractmethod
-    def mention(self):
-        pass
-
-    @classmethod
-    def __subclasshook__(cls, klass):
-        if cls is User:
-            if Snowflake.__subclasshook__(klass) is NotImplemented:
-                return NotImplemented
-            for attr in cls.attributes:
-                for base in klass.__mro__:
-                    if attr in base.__dict__:
-                        break
-                else:
-                    return NotImplemented
-            return True
-        return NotImplemented
-
-
-
+    def created_at(self):
+        _id = getattr(self, 'id', None)
+        if not isinstance(_id, int) and _id < 1:
+            raise AttributeError("id is not set!")
+        return id_to_time(_id)
 
 class Sendable(ABC):
-    '''Base class that TextChannels, Users and PrivateChannels inherit from'''
-
+    ''' Base class for objects that can send messages '''
     __slots__ = ()
-    
-    def send(self, content=None, embed=None, file=None, tts=False):
+
+    @abstractmethod
+    async def send(self, **kwargs):
         pass
 
-    def trigger_typing(self):
+    @abstractmethod
+    async def trigger_typing(self):
         pass
+
+class Serializable(ABC):
+    ''' Anything that can go to and from a dict '''
+    __slots__ = ()
+
+    @abstractmethod
+    def from_dict(self, data):
+        pass
+
+    def to_dict(self):
+        d = {key: getattr(self, key, None) for key in __class__.__slots__}
+        return {key: value for key, value in d.items() if value is not None}
