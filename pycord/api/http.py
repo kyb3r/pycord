@@ -1,5 +1,6 @@
 import asyncio
 import aiohttp
+from .. import utils
 
 
 class Route:
@@ -22,7 +23,7 @@ class RateLimiter:
         self.lock = lock
 
     async def __aenter__(self):
-        await self.lock
+        await self.lock`
         return self
 
     async def __aexit__(self, type, value, traceback):
@@ -31,7 +32,6 @@ class RateLimiter:
 
     def delay(self):
         self.unlock = False
-
 
 
 class HttpClient:
@@ -65,7 +65,7 @@ class HttpClient:
                 remaining = resp.headers.get('X-Ratelimit-Remaining')
 
                 if remaining == '0': #simple ratelimiting
-                    delta = self._parse_ratelimit_header(resp)
+                    delta = utils._parse_ratelimit_header(resp)
                     throttle.delay()
                     self.loop.call_later(delta, self.lock.release)
 
