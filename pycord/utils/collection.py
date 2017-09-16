@@ -72,7 +72,7 @@ class Collection:
     def remove_if(self, **attrs):
         """ Remove items if meet attribute conditions """
         for i in range(len(self.data) - 1, -1, -1):
-            if self.has_attrs(self.data[i[, **attrs):
+            if self.has_attrs(self.data[i], **attrs):
             del self.data[i]
 
     def first(self):
