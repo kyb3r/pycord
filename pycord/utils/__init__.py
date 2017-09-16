@@ -6,7 +6,6 @@ from datetime import datetime
 from collections import deque
 from .emitter import Emitter
 from .collection import Collection
-from email.utils import parsedate_to_datetime
 
 # try get libuv event loop
 try: import uvloop as uvloop
@@ -53,11 +52,6 @@ def time_to_id(timeobj, high=False):
     return (discord_ms << 22) + (2*22-1 if high else 0)
 
 ######### Data formatting #######################
-
-def _parse_ratelimit_header(request):
-    now = parsedate_to_datetime(request.headers['Date'])
-    reset = datetime.datetime.fromtimestamp(int(request.headers['X-Ratelimit-Reset']), datetime.timezone.utc)
-    return (reset - now).total_seconds()
 
 def image_type(data):
     if data.startswith(b'\x89\x50\x4E\x47\x0D\x0A\x1A\x0A'):
