@@ -1,9 +1,11 @@
 import asyncio
-from .models import User
+from .models import ClientUser, User
 from .utils import Emitter
 from .utils import Collection
 from .utils import get_event_loop
 from .api import HttpClient, ShardConnetion
+from .api import EventHandler
+import traceback
 
 class Client(Emitter):
     def __init__(self, shard_count=-1):
@@ -14,9 +16,16 @@ class Client(Emitter):
         self.running = asyncio.Event()
         self.api = HttpClient(self.loop)
         self.shards = [] if shard_count < 1 else list(range(shard_count))
-
-        self.user = User()
+        self.state = EventHandler(self)
         self.users = Collection(User)
+
+    @property
+    def user(self):
+        return self.state.user
+
+    @property
+    def guilds(self):
+        return self.state.guilds.values()
 
     def close(self):
         self.running.set()
@@ -54,4 +63,4 @@ class Client(Emitter):
         except KeyboardInterrupt:
             self.close()
         except Exception as err:
-            raise err
+            traceback.print_exc()
