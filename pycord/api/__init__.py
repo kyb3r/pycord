@@ -1,3 +1,3 @@
 from .http import HttpClient
-from .gateway import ShardConnetion
+from .gateway import ShardConnection
 from .events import EventHandler

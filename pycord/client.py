@@ -1,11 +1,12 @@
 import asyncio
-from .models import ClientUser, User
+import traceback
 from .utils import Emitter
+from .models import ClientUser
 from .utils import Collection
 from .utils import get_event_loop
-from .api import HttpClient, ShardConnetion
-from .api import EventHandler
-import traceback
+from .api import HttpClient, ShardConnection
+from .models import Channel, Guild, Message, User
+
 
 class Client(Emitter):
     def __init__(self, shard_count=-1):
@@ -16,19 +17,24 @@ class Client(Emitter):
         self.running = asyncio.Event()
         self.api = HttpClient(self.loop)
         self.shards = [] if shard_count < 1 else list(range(shard_count))
-        self.state = EventHandler(self)
+       
+        self.user = ClientUser(self)
         self.users = Collection(User)
+        self.guilds = Collection(Guild)
+        self.channels = Collection(Channel)
+        self.messages = Collection(Message)
 
-    @property
-    def user(self):
-        return self.state.user
+    def __del__(self):
+        if self.is_bot:
+            self.close()
 
-    @property
-    def guilds(self):
-        return self.state.guilds.values()
+    async def _close(self):
+        for shard in self.shards:
+            await shard.close()
+        self.running.set()
 
     def close(self):
-        self.running.set()
+        self.loop.run_until_complete(self._close())
 
     async def start(self, token, bot=True):
         self.is_bot = True
@@ -61,6 +67,7 @@ class Client(Emitter):
         try:
             self.loop.run_until_complete(self.start(*args, **kwargs))
         except KeyboardInterrupt:
-            self.close()
+            pass
         except Exception as err:
             traceback.print_exc()
+        self.close()

@@ -1,21 +1,17 @@
+from .role import Role
+from ..utils import Collection
 from .core import Snowflake, Sendable, Serializable
-
-
 
 class User(Snowflake, Sendable, Serializable):
 
     __slots__ = (
-        'username', 'avatar','id',
+        'username', 'avatar','id','avatar',
         'discriminator', 'bot', 'verified'
         )
 
-    def __init__(self, data={}):
+    def __init__(self, client, data={}):
         self.from_dict(data)
-
-    def from_dict(self, data):
-        for key in self.__slots__:
-            if key in data and data[key] is not None:
-                setattr(self, key, data[key])
+        self.id = int(data.get('id', 0))
 
     async def send(self, **kwargs):
         pass
@@ -27,44 +23,55 @@ class User(Snowflake, Sendable, Serializable):
 class ClientUser(User):
 
     __slots__ = (
-        'email', 'mfa_enabled','username', 'avatar',
-        'discriminator', 'bot', 'verified','id'
-        )
+        'email', 'mfa_enabled'
+    )
 
-    def __init__(self, data={}, state=None):
-        super().__init__()
-        self._state = state
-
-        for key in self.__slots__:
-            if key in data:
-                setattr(self, key, data[key])
+    def __init__(self, client, data={}):
+        super().__init__(client, data)
 
 
-
-class Member(User):
+class Member(Snowflake, Serializable):
 
     __slots__ = (
-        '_roles', 'username', 'avatar','id',
-        'discriminator', 'bot', 'verified',
-        'guild', 'nick'
-        )
+        '_roles', '_user', 'guild', 'nick'
+    )
 
-    def __init__(self, data, guild, state):
+    def __init__(self, guild, user, data={}):
         super().__init__()
-        self._state = state
         self.guild = guild
-        self.id = int(data['user'].get('id'))
-        self.bot = data.get('bot')
-        self.verified = data.get('verified')
-        self.from_data(data)
+        self._user = user
+        self._roles = Collection(Role)
+        self.from_dict(data)
 
-    def from_data(self, data):
-        self.username = data.get('username')
-        self.avatar = data.get('avatar')
-        self.discriminator = data.get('discriminator')
-        if data.get('nick'):
-            self.nick = data.get('nick')
+    @property
+    def username(self):
+        return self._user.username
 
+    @property
+    def avatar(self):
+        return self._user.avatar
+
+    @property
+    def discrim(self):
+        return self._user.discriminator
+
+    @property
+    def bot(self):
+        return self._user.bot
+
+    @property
+    def verified(self):
+        return self._user.verified
+
+    def from_dict(self, data):
+        self.nick = data.get('nick')
+        self.id = int(data.get('id', 0))
+
+        if self.guild:
+            for role in data.get('roles', []):
+                role = self.guild._roles.get(int(role))
+                if role:
+                    self._roles.add(role)
 
 # not done yet
 

@@ -107,7 +107,7 @@ class Collection:
 
     def find(self, condition):
         """ Find all objects which meet callable condition """
-        return [item for item in self if condition(i)]
+        return [item for item in self if condition(item)]
 
     def find_by(self, **attrs):
         """ Find using arguments and attr to value filters """

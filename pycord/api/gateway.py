@@ -2,11 +2,12 @@ import time
 import zlib
 import asyncio
 import platform
+import traceback
 import websockets
 from ..utils import json
+from .events import EventHandler
 from ..utils import get_libname, API
 from ..utils import to_json, from_json
-import traceback
 
 class ShardConnection:
     DISPATCH        = 0
@@ -28,15 +29,22 @@ class ShardConnection:
         self.alive = False
         self.sequence = None
         self.client = client
-        self.state = client.state
         self.is_resume = False
         self.session_id = None
         self.heartbeat_acked = False
+        self.handler = EventHandler(self)
         self.shard_info = [shard_id, shard_max]
 
     async def close(self, code=1000, reason=''):
         self.alive = False
         if self.ws is not None:
+            offline = {
+                'game': None,
+                'afk': False,
+                'since': None,
+                'status': 'offline'
+            }
+            await self.send(self.PRESENCE, offline)
             await self.ws.close(code, reason)
 
     async def send(self, op=DISPATCH, d=None):
@@ -106,6 +114,14 @@ class ShardConnection:
                 await self.client.emit('raw_data', data)
                 await self.handle_data(data)
 
+            # ignore websocket close exception
+            except websockets.exceptions.ConnectionClosed:
+                break
+
+            # ignore asyncio cancellation exceptions
+            except asyncio.CancelledError:
+                break
+
             # handle any exceptions
             except Exception as err:
                 traceback.print_exc()
@@ -145,9 +161,8 @@ class ShardConnection:
         # handle gateway events
         elif op == self.DISPATCH:
             handle = f'handle_{event.lower()}'
-            if hasattr(self.state, handle):
-                coro = getattr(self.state, handle)
-                await coro(data)
+            if hasattr(self.handler, handle):
+                await getattr(self.handler, handle)(data)
 
     async def start(self, url):
         """ Start long-term connection with gateway """

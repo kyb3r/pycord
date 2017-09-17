@@ -1,14 +1,24 @@
+from .core import Snowflake, Serializable
 
+class Message(Snowflake, Serializable):
+    __slots__ = (
+        'client', 'guild', 'content', 
+        'edited', 'channel', 'author', 'members'
+    )
 
-class Message:
-    def __init__(self, data, state):
-        self.state = state
-        self.from_data(data)
+    def __init__(self, client, data={}):
+        self.client = client
+        self.from_dict(data)
 
-    def from_data(self, data):
-        self.content = data['content']
-        self.id = data['id']
-        self.channel = self.state.get_channel(data['channel'])
-        self.author = self.state.get_user(data['author']['id'])
+    def from_dict(self, data):
+        self.id = int(data.get('id'))
+        self.content = data.get('content')
+        
+        channel_id = int(data['channel_id'], 0)
+        self.channel = self.client.channels.get(channel_id)
+
+        if 'author' in data:
+            author_id = int(data['author']['id'])
+            self.author = self.client.users.get(author_id)
 
 #todo
