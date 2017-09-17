@@ -25,7 +25,7 @@ class Emitter(ABC):
         else:
             def wrapper(coro):
                 if not asyncio.iscoroutinefunction(coro):
-                    raise ValueError(f'Callback is not an async function')
+                    raise RuntimeWarning(f'Callback is not a coroutine!')
                 self.events[event].append(coro)
                 return coro
             return wrapper
