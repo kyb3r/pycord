@@ -162,3 +162,144 @@ class HttpClient:
 
         # retries have been exhausted
         raise Exception(f"Failed HTTP Request: {resp.status} {method} {endpoint}")
+
+
+    def send_message(self, channel, **kwargs):
+        '''Send a message to a channel.'''
+        route = f'/channels/{channel.id}/messages'
+
+        payload = {
+            'content' : kwargs.get('content')
+            'embed' : kwargs.get('embed')
+            'tts' : kwargs.get('tts', False)
+        }
+
+        return self.post(route, data=payload)
+
+    def send_typing(self, channel.id):
+        return self.request(Route('POST', '/channels/{channel.id}/typing', channel.id=channel.id))
+
+    def send_files(self, channel, *, files, content=None, tts=False, embed=None, nonce=None):
+        '''Send files to a channel.'''
+        route = f'/channels/{channel.id}/messages'
+
+        form = aiohttp.FormData()
+
+        payload = {
+            'content' : kwargs.get('content')
+            'embed' : kwargs.get('embed')
+            'tts' : kwargs.get('tts', False)
+        }
+
+        form.add_field('payload_json', to_json(payload))
+
+        for i, (buffer, filename) in enumerate(files):
+            form.add_field(f'file{i}', buffer, filename=filename, content_type='application/octet-stream')
+
+        return self.post(route, data=form)
+
+    def start_private_message(self, user):
+        payload = {
+            'recipient_id': user.id
+        }
+        return self.post('/users/@me/channels', data=payload)
+
+    def delete_message(self, channel, message_id, *, reason=None):
+        r = Route('DELETE', '/channels/{channel.id}/messages/{message_id}', channel.id=channel.id,
+                                                                            message_id=message_id)
+        return self.request(r, reason=reason)
+
+    def delete_messages(self, channel, message_ids, *, reason=None):
+        r = Route('POST', '/channels/{channel.id}/messages/bulk_delete', channel.id=channel.id)
+        payload = {
+            'messages': message_ids
+        }
+
+        return self.request(r, data=payload, reason=reason)
+
+    def edit_message(self, channel, message, **fields):
+        route = f'/channels/{channel.id}/messages/{message.id}'
+        return self.patch(route, data=fields)
+
+    def add_reaction(self, channel, message, emoji):
+        route = f'/channels/{channel.id}/messages/{message.id}/reactions/{emoji}/@me'
+        # emoji in format 'name:id'
+        return self.put(route)
+
+    def remove_reaction(self, channel, message, emoji, member_id):
+        route = f'/channels/{channel.id}/messages/{message.id}/reactions/{emoji}/{member.id}'
+        return self.delete(route)
+
+    def get_reaction_users(self, channel, message, emoji, limit, after=None):
+        route = f'/channels/{channel.id}/messages/{message.id}/reactions/{emoji}',
+
+        params = {
+            'limit': limit,
+            'after': after
+            }
+
+        return self.get(route, params=params)
+
+    def clear_reactions(self, channel, message):
+        route = f'/channels/{channel.id}/messages/{message.id}/reactions',
+
+        return self.delete(route)
+
+    def get_message(self, channel, message):
+        r = f'/channels/{channel.id}/messages/{message.id}'
+        return self.get(route)
+
+    def logs_from(self, channel, limit, before=None, after=None, around=None):
+        route = f'/channels/{channel.id}/messages'
+
+        params = {
+            'limit': limit,
+            'before': before,
+            'after': after,
+            'around': around
+            }
+
+        return self.get(route, params=params)
+
+    def pin_message(self, channel, message):
+        return self.put('/channels/{channel.id}/pins/{message.id}')
+
+    def unpin_message(self, channel, message):
+        return self.delete('/channels/{channel.id}/pins/{message.id}')
+
+    def pins_from(self, channel):
+        return self.get('/channels/{channel.id}/pins')
+
+    def start_group(self, user, recipients):
+        route = f'/users/{user.id}/channels'
+
+        payload = {
+            'recipients': [r.id for r in recipients]
+        }
+
+        return self.post(route, data=payload)
+
+    def leave_group(self, channel):
+        return self.delete(f'/channels/{channel.id}')
+
+    def add_group_recipient(self, channel, user):
+        route = f'/channels/{channel.id}/recipients/{user.id}'
+        return self.put(route)
+
+    def remove_group_recipient(self, channel, user):
+        route = f'/channels/{channel.id}/recipients/{user.id}'
+        return self.delete(route)
+
+    def edit_group(self, channel, *, name=None, icon=None):
+        route = f'/channels/channel.id'
+
+        payload = {
+            'name' : name
+            'icon' : icon
+        }
+
+        return self.patch( data=payload)
+
+    def convert_group(self, channel):
+        return self.post(f'/channels/{channel.id}/convert')
+
