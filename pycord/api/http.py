@@ -82,7 +82,7 @@ class HttpClient:
         bucket = f"{method}.{endpoint}"
         endpoint = API.HTTP_ENDPOINT + endpoint
 
-        # get route
+        # get lock
         lock = self.buckets.get(bucket)
         if lock is None:
             lock = asyncio.Lock(loop=self.loop)

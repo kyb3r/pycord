@@ -50,7 +50,7 @@ class Client(Emitter):
 
         # spawn shard connections
         for shard_id in range(shard_count):
-            shard = ShardConnetion(self, shard_id, shard_count)
+            shard = ShardConnection(self, shard_id, shard_count)
             self.shards[shard_id] = shard
             self.loop.create_task(shard.start(url))
 

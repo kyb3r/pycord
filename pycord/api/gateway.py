@@ -8,7 +8,7 @@ from ..utils import get_libname, API
 from ..utils import to_json, from_json
 import traceback
 
-class ShardConnetion:
+class ShardConnection:
     DISPATCH        = 0
     HEARTBEAT       = 1
     IDENTIFY        = 2
