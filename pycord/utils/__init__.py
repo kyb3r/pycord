@@ -8,12 +8,16 @@ from .emitter import Emitter
 from .collection import Collection
 
 # try get libuv event loop
-try: import uvloop as uvloop
-except: uvloop = None
+try: 
+    import uvloop
+except ImportError: 
+    uvloop = None
 
 # try get fastest json parser
-try: import ujson as json
-except: import json
+try: 
+    import ujson as json
+except ImportError:
+    import json
 
 # get the library name by folder
 def get_libname():
@@ -77,6 +81,6 @@ def from_json(data):
 
 def pretty_json(data):
   try:
-      return json.dumps(data, indent=2)
+      return json.dumps(data, indent=4)
   except:
       return json.dumps(data)
