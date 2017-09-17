@@ -1,3 +1,5 @@
+from ..utils import parse_time
+
 class Embed:
     '''Class that formats an embed'''
     __slots__ = (
@@ -14,7 +16,16 @@ class Embed:
         self.description = kwargs.get('description')
         self.timestamp = kwargs.get('timestamp')
         self.fields = []
-          
+
+    @classmethod
+    def from_dict(cls, data):
+        self = cls.__new__(cls)
+        for attr in data:
+            if attr == 'timestamp': #special case
+                setattr(self, attr, parse_time(data[attr]))
+            else:
+                setattr(self, attr, data[attr])
+
     def del_field(self, index):
         '''Deletes a field by index'''
         self.fields.pop(index)
