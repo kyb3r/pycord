@@ -4,9 +4,9 @@ import asyncio
 import platform
 import websockets
 from ..utils import json
-from .events import Handle
 from ..utils import get_libname, API
 from ..utils import to_json, from_json
+import traceback
 
 class ShardConnetion:
     DISPATCH        = 0
@@ -28,6 +28,7 @@ class ShardConnetion:
         self.alive = False
         self.sequence = None
         self.client = client
+        self.state = client.state
         self.is_resume = False
         self.session_id = None
         self.heartbeat_acked = False
@@ -107,7 +108,7 @@ class ShardConnetion:
 
             # handle any exceptions
             except Exception as err:
-                print("Error:", err)
+                traceback.print_exc()
                 break
 
     async def handle_data(self, data):
@@ -143,7 +144,10 @@ class ShardConnetion:
 
         # handle gateway events
         elif op == self.DISPATCH:
-            await Handle(self, event, data)
+            handle = f'handle_{event.lower()}'
+            if hasattr(self.state, handle):
+                coro = getattr(self.state, handle)
+                await coro(data)
 
     async def start(self, url):
         """ Start long-term connection with gateway """
