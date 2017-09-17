@@ -5,7 +5,7 @@ class Emitter(ABC):
     __slots__ = ('_events')
 
     def __init__(self):
-        self._events = []
+        self._events = {}
 
     async def get_events(self, event):
         for callback in self._events[event]:
@@ -26,6 +26,6 @@ class Emitter(ABC):
             def wrapper(coro):
                 if not asyncio.iscoroutinefunction(coro):
                     raise RuntimeWarning(f'Callback is not a coroutine!')
-                self.events[event].append(coro)
+                self._events[event].append(coro)
                 return coro
             return wrapper
