@@ -1,5 +1,4 @@
 import sys
-import gzip
 import time
 import asyncio
 import aiohttp
@@ -103,8 +102,7 @@ class HttpClient:
                 data = to_json(data)
             if isinstance(data, str):
                 data = data.encode('utf-8')
-            data = gzip.compress(data)
-            headers['Content-Encoding'] = 'gzip'
+
             headers['Content-Type'] = 'application/json'
 
         # check if global rate limited
