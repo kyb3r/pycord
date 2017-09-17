@@ -10,7 +10,6 @@ class Emitter(ABC):
     async def get_events(self, event):
         for callback in self._events[event]:
             yield callback
-        raise StopAsyncIteration
 
     async def emit(self, event, *args, **kwargs):
         if event in self._events:
