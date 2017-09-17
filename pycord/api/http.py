@@ -169,15 +169,16 @@ class HttpClient:
         route = f'/channels/{channel.id}/messages'
 
         payload = {
-            'content' : kwargs.get('content')
-            'embed' : kwargs.get('embed')
+            'content' : kwargs.get('content'),
+            'embed' : kwargs.get('embed'),
             'tts' : kwargs.get('tts', False)
         }
 
         return self.post(route, data=payload)
 
-    def send_typing(self, channel.id):
-        return self.request(Route('POST', '/channels/{channel.id}/typing', channel.id=channel.id))
+    def send_typing(self, channel):
+        route = f'/channels/{channel.id}/typing'
+        return self.post(route)
 
     def send_files(self, channel, *, files, content=None, tts=False, embed=None, nonce=None):
         '''Send files to a channel.'''
@@ -186,8 +187,8 @@ class HttpClient:
         form = aiohttp.FormData()
 
         payload = {
-            'content' : kwargs.get('content')
-            'embed' : kwargs.get('embed')
+            'content' : kwargs.get('content'),
+            'embed' : kwargs.get('embed'),
             'tts' : kwargs.get('tts', False)
         }
 
@@ -205,17 +206,16 @@ class HttpClient:
         return self.post('/users/@me/channels', data=payload)
 
     def delete_message(self, channel, message_id, *, reason=None):
-        r = Route('DELETE', '/channels/{channel.id}/messages/{message_id}', channel.id=channel.id,
-                                                                            message_id=message_id)
-        return self.request(r, reason=reason)
+        route = '/channels/{channel.id}/messages/{message.id}'
+        return self.delete(r, reason=reason)
 
-    def delete_messages(self, channel, message_ids, *, reason=None):
-        r = Route('POST', '/channels/{channel.id}/messages/bulk_delete', channel.id=channel.id)
+    def delete_messages(self, channel, messages, *, reason=None):
+        route = f'/channels/{channel.id}/messages/bulk_delete'
         payload = {
-            'messages': message_ids
+            'messages': [m.id for m in messages]
         }
 
-        return self.request(r, data=payload, reason=reason)
+        return self.post(route, data=payload, reason=reason)
 
     def edit_message(self, channel, message, **fields):
         route = f'/channels/{channel.id}/messages/{message.id}'
@@ -294,7 +294,7 @@ class HttpClient:
         route = f'/channels/channel.id'
 
         payload = {
-            'name' : name
+            'name' : name,
             'icon' : icon
         }
 
