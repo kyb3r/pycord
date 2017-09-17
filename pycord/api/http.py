@@ -204,7 +204,7 @@ class HttpClient:
         return self.post('/users/@me/channels', data=payload)
 
     def delete_message(self, channel, message_id, *, reason=None):
-        route = '/channels/{channel.id}/messages/{message.id}'
+        route = f'/channels/{channel.id}/messages/{message.id}'
         return self.delete(r, reason=reason)
 
     def delete_messages(self, channel, messages, *, reason=None):
@@ -260,13 +260,13 @@ class HttpClient:
         return self.get(route, params=params)
 
     def pin_message(self, channel, message):
-        return self.put('/channels/{channel.id}/pins/{message.id}')
+        return self.put(f'/channels/{channel.id}/pins/{message.id}')
 
     def unpin_message(self, channel, message):
-        return self.delete('/channels/{channel.id}/pins/{message.id}')
+        return self.delete(f'/channels/{channel.id}/pins/{message.id}')
 
     def pins_from(self, channel):
-        return self.get('/channels/{channel.id}/pins')
+        return self.get(f'/channels/{channel.id}/pins')
 
     def start_group(self, user, recipients):
         route = f'/users/{user.id}/channels'
