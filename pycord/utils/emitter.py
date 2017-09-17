@@ -7,13 +7,9 @@ class Emitter(ABC):
     def __init__(self):
         self._events = {}
 
-    async def get_events(self, event):
-        for callback in self._events[event]:
-            yield callback
-
     async def emit(self, event, *args, **kwargs):
         if event in self._events:
-            async for callback in self.get_events(event):
+            for callback in self._events[event]:
                 await callback(*args, **kwargs)
 
     def on(self, event, callback=None):
