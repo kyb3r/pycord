@@ -8,9 +8,9 @@ class Snowflake(ABC):
     @property
     def created_at(self):
         _id = getattr(self, 'id', None)
-        if not isinstance(_id, int) and _id < 1:
+        if not _id:
             raise AttributeError("id is not set!")
-        return id_to_time(_id)
+        return id_to_time(int(_id))
 
 class Sendable(ABC):
     ''' Base class for objects that can send messages '''
@@ -33,5 +33,5 @@ class Serializable(ABC):
         pass
 
     def to_dict(self):
-        d = {key: getattr(self, key, None) for key in __class__.__slots__}
+        d = {key: getattr(self, key, None) for key in self.__slots__}
         return {key: value for key, value in d.items() if value is not None}
