@@ -1,5 +1,10 @@
 import pycord
 
+'''
+Example showing off how beautiful 
+the design of this api wrapper is ;)
+'''
+
 client = pycord.Client()
 
 @client.on('ready')
@@ -10,7 +15,7 @@ async def on_ready():
     print(f'With {len(client.guilds)} guilds')
 
 @client.on('message')
-async def on_message(message):
+async def ping_command(message):
     if message.content.startswith('py.ping'):
         await message.reply('Pong!')
 
