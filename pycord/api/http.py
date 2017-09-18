@@ -301,3 +301,127 @@ class HttpClient:
     def convert_group(self, channel):
         return self.post(f'/channels/{channel.id}/convert')
 
+    def edit_channel(self, channel, *, reason=None, **options):
+        route = f'/channels/{channel.id}'
+
+        valid_keys = ('name', 'topic', 'bitrate', 'nsfw', 'user_limit', 'position', 'permission_overwrites')
+        payload = {
+            k: v for k, v in options.items() if k in valid_keys
+        }
+        return self.patch(route, reason=reason, json=payload)
+
+    def bulk_channel_update(self, guild, data, *, reason=None):
+        r = f'/guilds/{guild.id}/channels'
+        return self.patch(r, json=data, reason=reason)
+
+    def create_channel(self, guild, name, channel_type, permission_overwrites=None, *, reason=None):
+        route = f'/guilds/{guild.id}/channels'
+
+        payload = {
+            'name': name,
+            'type': channel_type
+        }
+
+        if permission_overwrites is not None:
+            payload['permission_overwrites'] = permission_overwrites
+
+        return self.post(route, json=payload, reason=reason)
+
+    def delete_channel(self, channel, *, reason=None):
+        return self.delete(f'/channels/{channel.id}', reason=reason)
+
+    def kick(self, member, guild, reason=None):
+        route = f'/guilds/{guild.id}/members/{member.id}'
+        if reason:
+            route += f'?reason={quote(reason)}'
+        return self.delete(route)
+
+    def ban(self, member, guild, delete_message_days=1, reason=None):
+        route = f'/guilds/{guild.id}/bans/{member.id}'
+        params = {
+            'delete-message-days': delete_message_days,
+            }
+        if reason:
+            route += f'?reason={quote(reason)}'
+
+        return self.put(r, params=params)
+
+    def unban(self, member, guild, *, reason=None):
+        route = f'/guilds/{guild.id}/bans/{member.id}'
+        return self.delete(route, reason=reason)
+
+    def guild_voice_state(self, member, guild, *, mute=None, deafen=None, reason=None):
+        route = f'/guilds/{guild.id}/members/{member.id}'
+        payload = {}
+        if mute is not None:
+            payload['mute'] = mute
+        if deafen is not None:
+            payload['deaf'] = deafen
+
+        return self.patch(route, json=payload, reason=reason)
+
+    def edit_profile(self, password, username, avatar, **kwargs):
+        payload = {
+            'password': password,
+            'username': username,
+            'avatar': avatar
+        }
+        if 'email' in kwargs:
+            payload['email'] = kwargs['email']
+
+        if 'new_password' in kwargs:
+            payload['new_password'] = kwargs['new_password']
+
+        return self.patch('/users/@me', json=payload)
+
+    def change_my_nickname(self, guild.id, nickname, *, reason=None):
+        route = f'/guilds/{guild.id}/members/@me/nick'
+        payload = {
+            'nick': nickname
+        }
+        return self.patch(route, json=payload, reason=reason)
+
+    def change_nickname(self, guild, member, nickname, *, reason=None):
+        route = f'/guilds/{guild.id}/members/{member.id}'
+        payload = {
+            'nick': nickname
+        }
+        return self.patch(r, json=payload, reason=reason)
+
+    def edit_member(self, guild, member, *, reason=None, **fields):
+        route = f'/guilds/{guild.id}/members/{member.id}'
+        return self.patch(route, json=fields, reason=reason)
+
+    def application_info(self):
+        return self.get('/oauth2/applications/@me')
+
+    def get_user_info(self, user_id):
+        return self.get(f'/users/{user_id}')
+
+    def get_user_profile(self, user_id):
+        return self.get(f'/users/{user_id}/profile')
+
+    def remove_relationship(self, user):
+        return self.delete(f'/users/@me/relationships/{user.id}')
+
+    def add_relationship(self, user_id, type_=None):
+
+        route = f'/users/@me/relationships/{user.id}'
+
+        if type_ is not None:
+            payload = {'type': type_}
+
+        return self.put(route, json=payload)
+
+    def send_friend_request(self, username, discriminator):
+        payload = {
+            'username': username,
+            'discriminator': int(discriminator)
+        }
+        return self.request('/users/@me/relationships', json=payload)
+
+
+
+
+
+
