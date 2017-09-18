@@ -1,9 +1,35 @@
-from .role import Role
-from .emoji import Emoji
-from ..utils import Collection
-from .user import Member, User
-from .core import Snowflake, Serializable
-from .channel import Channel, TextChannel, VoiceChannel
+'''
+MIT License
+
+Copyright (c) 2017 verixx / king1600
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+'''
+
+
+from pycord.models.channel import Channel, TextChannel, VoiceChannel
+from pycord.models.core import Snowflake, Serializable
+from pycord.models.user import Member, User
+from pycord.models.role import Role
+from pycord.models.emoji import Emoji
+from pycord.utils import Collection
+
 
 class Guild(Snowflake, Serializable):
 
@@ -23,6 +49,9 @@ class Guild(Snowflake, Serializable):
         self._members = Collection(Member)
         self._channels = Collection(Channel)
         self.from_dict(data)
+
+    def __str__(self):
+        return self.name
 
     def from_dict(self, data):
         self.id = int(data.get('id', 0))
@@ -51,6 +80,7 @@ class Guild(Snowflake, Serializable):
                     self.client.users.add(user)
                 else:
                     user = self.client.users.get(user_id)
+
             self._members.add(Member(self, user, member))
 
         for channel_data in data.get('channels', []):
@@ -64,6 +94,7 @@ class Guild(Snowflake, Serializable):
             if channel is not None:
                 self.client.channels.add(channel)
                 self._channels.add(channel)
+
 
 
     def add_member(self, member):
