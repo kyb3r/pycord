@@ -4,12 +4,34 @@ import asyncio
 import platform
 import traceback
 import websockets
+import threading
 from ..utils import json
 from .events import EventHandler
 from ..utils import get_libname, API
 from ..utils import to_json, from_json
 
+
+
+# class HeartbeatTask(threading.Thread):
+#     def __init__(self, connection, interval):
+#         super().__init__()
+#         self.conn = connection
+#         self.interval = interval
+#         self.stop_event = threading.Event()
+
+#     def run(self):
+#         while not self.stop_event.wait(self.interval):
+#             if self.conn.heartbeat_acked:
+#                 coro = self.conn.send(self.conn.HEARTBEAT, self.conn.sequence)
+#                 asyncio.run_coroutine_threadsafe(coro, loop=self.conn.loop)
+#                 coro.result()
+
+#     def stop(self):
+#         self.stop_event.close()
+
+
 class ShardConnection:
+
     DISPATCH        = 0
     HEARTBEAT       = 1
     IDENTIFY        = 2
@@ -31,7 +53,7 @@ class ShardConnection:
         self.client = client
         self.is_resume = False
         self.session_id = None
-        self.heartbeat_acked = False
+        self.heartbeat_acked = True
         self.handler = EventHandler(self)
         self.shard_info = [shard_id, shard_max]
 
@@ -139,11 +161,10 @@ class ShardConnection:
 
         # handle heartbeat ack
         elif op == self.HEARTBEAT_ACK:
-            self.heartbeat_acked = False
+            self.heartbeat_acked = True
 
         # start session
         elif op == self.HELLO:
-            self.heartbeat_acked = True
             interval = (data['heartbeat_interval'] - 100) / 1000.0
             self.client.loop.create_task(self.heartbeat(interval))
             await self.identify()
