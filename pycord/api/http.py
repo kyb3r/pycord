@@ -374,7 +374,7 @@ class HttpClient:
 
         return self.patch('/users/@me', json=payload)
 
-    def change_my_nickname(self, guild.id, nickname, *, reason=None):
+    def change_my_nickname(self, guild, nickname, *, reason=None):
         route = f'/guilds/{guild.id}/members/@me/nick'
         payload = {
             'nick': nickname
@@ -386,7 +386,7 @@ class HttpClient:
         payload = {
             'nick': nickname
         }
-        return self.patch(r, json=payload, reason=reason)
+        return self.patch(route, json=payload, reason=reason)
 
     def edit_member(self, guild, member, *, reason=None, **fields):
         route = f'/guilds/{guild.id}/members/{member.id}'
