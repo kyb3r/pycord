@@ -21,4 +21,8 @@ class Message(Snowflake, Serializable):
             author_id = int(data['author']['id'])
             self.author = self.client.users.get(author_id)
 
+
+    async def reply(self, content=None, **kwargs):
+        kwargs['content'] = content
+        return await self.client.api.send_message(self.channel, **kwargs)
 #todo
