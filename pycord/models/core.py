@@ -1,4 +1,29 @@
-from ..utils import id_to_time
+'''
+MIT License
+
+Copyright (c) 2017 verixx / king1600
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+'''
+
+
+from pycord.utils import id_to_time
 from abc import ABC, abstractmethod
 
 class Snowflake(ABC):
@@ -24,6 +49,7 @@ class Sendable(ABC):
     async def trigger_typing(self):
         pass
 
+
 class Serializable(ABC):
     ''' Anything that can go to and from a dict '''
     __slots__ = ()
@@ -34,4 +60,6 @@ class Serializable(ABC):
 
     def to_dict(self):
         d = {key: getattr(self, key, None) for key in self.__slots__}
-        return {key: value for key, value in d.items() if value is not None}
+        return {key: value 
+                    for key, value in d.items() 
+                        if value is not None}
