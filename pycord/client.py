@@ -1,11 +1,37 @@
+'''
+MIT License
+
+Copyright (c) 2017 verixx / king1600
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+'''
+
+
 import asyncio
 import traceback
-from .utils import Emitter
-from .models import ClientUser
-from .utils import Collection
-from .utils import get_event_loop
-from .api import HttpClient, ShardConnection
-from .models import Channel, Guild, Message, User
+from pycord.utils import Emitter
+from pycord.models import ClientUser
+from pycord.utils import Collection
+from pycord.utils import get_event_loop
+from pycord.api import HttpClient, ShardConnection
+from pycord.models import Channel, Guild, Message, User
+import time
 
 
 class Client(Emitter):
@@ -34,8 +60,8 @@ class Client(Emitter):
     def close(self):
         self.loop.run_until_complete(self._close())
 
-    async def start(self, token, bot=True):
-        self.is_bot = True
+    async def start(self, token, bot):
+        self.is_bot = bot
         self.token = self.api.token = token
 
         # get gateway info
@@ -61,9 +87,10 @@ class Client(Emitter):
         # wait for client to stop running
         await self.running.wait()
 
-    def login(self, *args, **kwargs):
+    def login(self, token, bot=True):
+        self._boot_up_time = time.time()
         try:
-            self.loop.run_until_complete(self.start(*args, **kwargs))
+            self.loop.run_until_complete(self.start(token, bot))
         except KeyboardInterrupt:
             pass
         except Exception as err:
