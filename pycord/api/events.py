@@ -8,6 +8,7 @@ class EventHandler:
         self.shard = shard
         self.client = shard.client
         self.api = self.client.api
+        self.emitted_ready = False
 
     async def handle_ready(self, data):
         self.client.user = ClientUser(self.client, data)
@@ -26,5 +27,7 @@ class EventHandler:
         else:
             self.client.guilds.add(Guild(self.client, data))
 
-        if len([None for g in self.client.guilds if g.unavailable]) == 0:
-            await self.client.emit('ready')
+        if not self.emitted_ready:
+            if len([None for g in self.client.guilds if g.unavailable]) == 0:
+                await self.client.emit('ready')
+                self.emitted_ready = True
