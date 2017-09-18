@@ -6,12 +6,7 @@ class Emitter(ABC):
 
     def __init__(self):
         self._events = {}
-
-    async def emit(self, event, *args, **kwargs):
-        if event in self._events:
-            for callback in self._events[event]:
-                await callback(*args, **kwargs)
-
+        
     def on(self, event, callback=None):
         if event not in self._events:
             self._events[event] = []
@@ -24,3 +19,10 @@ class Emitter(ABC):
                 self._events[event].append(coro)
                 return coro
             return wrapper
+
+    async def emit(self, event, *args, **kwargs):
+        if event in self._events:
+            for callback in self._events[event]:
+                await callback(*args, **kwargs)
+
+

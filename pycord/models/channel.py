@@ -1,4 +1,3 @@
-
 from .core import Snowflake, Sendable, Serializable
 
 class ChannelType:

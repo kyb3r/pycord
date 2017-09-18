@@ -17,8 +17,6 @@ class Client(Emitter):
         self.running = asyncio.Event()
         self.api = HttpClient(self.loop)
         self.shards = [] if shard_count < 1 else list(range(shard_count))
-       
-        self.user = ClientUser(self)
         self.users = Collection(User)
         self.guilds = Collection(Guild)
         self.channels = Collection(Channel)
