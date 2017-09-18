@@ -97,3 +97,7 @@ class Client(Emitter):
             traceback.print_exc()
         finally:
             self.close()
+
+    async def on_error(self, error):
+        '''Default error handler for events'''
+        traceback.print_exc()
