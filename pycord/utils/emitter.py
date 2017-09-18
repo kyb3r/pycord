@@ -6,7 +6,7 @@ class Emitter(ABC):
 
     def __init__(self):
         self._events = {}
-        
+
     def on(self, event, callback=None):
         if event not in self._events:
             self._events[event] = []
@@ -21,7 +21,12 @@ class Emitter(ABC):
             return wrapper
 
     async def emit(self, event, *args, **kwargs):
+        on_event = f'on_{event}'
+        if hasattr(self, on_event):
+            await getattr(self, on_event)(*args, **kwargs)
         if event in self._events:
+            if hasattr(self, event):
+                await getattr(self, event)
             for callback in self._events[event]:
                 await callback(*args, **kwargs)
 
