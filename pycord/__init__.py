@@ -5,3 +5,4 @@ __author__ = ["verixx", "king1600"]
 __github__ = 'https://github.com/verixx/pycord'
 
 from .client import Client
+from .models import Embed
