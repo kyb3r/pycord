@@ -1,6 +1,32 @@
-from .role import Role
-from ..utils import Collection
-from .core import Snowflake, Sendable, Serializable
+'''
+MIT License
+
+Copyright (c) 2017 verixx / king1600
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+'''
+
+
+from pycord.models.core import Snowflake, Sendable, Serializable
+from pycord.models.role import Role
+from pycord.utils import Collection
+
 
 class User(Snowflake, Sendable, Serializable):
 
@@ -13,12 +39,23 @@ class User(Snowflake, Sendable, Serializable):
         self.from_dict(data)
         self.id = int(data.get('id', 0))
 
+
+    def from_dict(self, data):
+        self.name = data.get('username')
+        self.avatar = data.get('avatar')
+        self.discrim = data.get('discriminator')
+        self.bot = data.get('bot')
+        self.verified = data.get('verified')
+
     def __str__(self):
-        return '{0.username}#{0.discriminator}'.format(self)
+        return '{0.name}#{0.discrim}'.format(self)
+
+    def __eq__(self, other):
+        return isinstance(other, self) and other.id == self.id
 
     @property
     def mention(self):
-        return '<@!{self.id}>'
+        return '<@{self.id}>'
 
     async def send(self, **kwargs):
         pass
@@ -41,9 +78,9 @@ class ClientUser(User):
         data = data['user']
         self.id = int(data.get('id', 0))
         self.email = data.get('email')
-        self.username = data.get('username')
+        self.name = data.get('username')
         self.avatar = data.get('avatar')
-        self.discriminator = data.get('discriminator')
+        self.discrim = data.get('discriminator')
         self.bot = data.get('bot')
         self.verified = data.get('verified')
         self.mfa_enabled = data.get('mfa_enabled')
@@ -63,9 +100,16 @@ class Member(Snowflake, Serializable):
         self.roles = Collection(Role)
         self.from_dict(data)
 
+    def __str__(self):
+        return '{0.name}#{0.discrim}'.format(self)
+
     @property
-    def username(self):
-        return self.user.username
+    def id(self):
+        return self.user.id
+
+    @property
+    def name(self):
+        return self.user.name
 
     @property
     def avatar(self):
@@ -73,7 +117,7 @@ class Member(Snowflake, Serializable):
 
     @property
     def discrim(self):
-        return self.user.discriminator
+        return self.user.discrim
 
     @property
     def bot(self):
@@ -83,9 +127,9 @@ class Member(Snowflake, Serializable):
     def verified(self):
         return self.user.verified
 
+
     def from_dict(self, data):
         self.nick = data.get('nick')
-        self.id = int(data.get('id', 0))
 
         if self.guild:
             for role in data.get('roles', []):
