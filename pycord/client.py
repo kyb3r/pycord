@@ -68,4 +68,5 @@ class Client(Emitter):
             pass
         except Exception as err:
             traceback.print_exc()
-        self.close()
+        finally:
+            self.close()
