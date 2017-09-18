@@ -53,35 +53,35 @@ class ClientUser(User):
 class Member(Snowflake, Serializable):
 
     __slots__ = (
-        '_roles', '_user', 'guild', 'nick',
+        'roles', 'user', 'guild', 'nick',
     )
 
     def __init__(self, guild, user, data={}):
         super().__init__()
         self.guild = guild
-        self._user = user
-        self._roles = Collection(Role)
+        self.user = user
+        self.roles = Collection(Role)
         self.from_dict(data)
 
     @property
     def username(self):
-        return self._user.username
+        return self.user.username
 
     @property
     def avatar(self):
-        return self._user.avatar
+        return self.user.avatar
 
     @property
     def discrim(self):
-        return self._user.discriminator
+        return self.user.discriminator
 
     @property
     def bot(self):
-        return self._user.bot
+        return self.user.bot
 
     @property
     def verified(self):
-        return self._user.verified
+        return self.user.verified
 
     def from_dict(self, data):
         self.nick = data.get('nick')
@@ -91,7 +91,7 @@ class Member(Snowflake, Serializable):
             for role in data.get('roles', []):
                 role = self.guild._roles.get(int(role))
                 if role:
-                    self._roles.add(role)
+                    self.roles.add(role)
 
 # not done yet
 
