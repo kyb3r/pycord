@@ -1,3 +1,7 @@
+from .role import Role
 from .embed import Embed
+from .guild import Guild
+from .message import Message
 from .user import User, ClientUser, Member
-from .guild import Guild 
+from .channel import Channel, TextChannel, VoiceChannel
+ 

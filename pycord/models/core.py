@@ -28,9 +28,9 @@ class Serializable(ABC):
     ''' Anything that can go to and from a dict '''
     __slots__ = ()
 
-    @abstractmethod
     def from_dict(self, data):
-        pass
+        for attr in __class__.__slots__:
+            setattr(self, attr, data.get(attr))
 
     def to_dict(self):
         d = {key: getattr(self, key, None) for key in self.__slots__}
