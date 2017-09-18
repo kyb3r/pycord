@@ -13,6 +13,13 @@ class User(Snowflake, Sendable, Serializable):
         self.from_dict(data)
         self.id = int(data.get('id', 0))
 
+    def __str__(self):
+        return '{0.username}#{0.discriminator}'.format(self)
+
+    @property
+    def mention(self):
+        return '<@!{self.id}>'
+
     async def send(self, **kwargs):
         pass
 
@@ -23,17 +30,30 @@ class User(Snowflake, Sendable, Serializable):
 class ClientUser(User):
 
     __slots__ = (
-        'email', 'mfa_enabled'
-    )
+        'email', 'mfa_enabled','username', 'avatar',
+        'id','avatar','discriminator', 'bot', 'verified'
+        )
 
-    def __init__(self, client, data={}):
-        super().__init__(client, data)
+    def __init__(self, client, data):
+        self.from_dict(data)
+
+    def from_dict(self, data):
+        data = data['user']
+        self.id = int(data.get('id', 0))
+        self.email = data.get('email')
+        self.username = data.get('username')
+        self.avatar = data.get('avatar')
+        self.discriminator = data.get('discriminator')
+        self.bot = data.get('bot')
+        self.verified = data.get('verified')
+        self.mfa_enabled = data.get('mfa_enabled')
+        self.email = data.get('email')
 
 
 class Member(Snowflake, Serializable):
 
     __slots__ = (
-        '_roles', '_user', 'guild', 'nick'
+        '_roles', '_user', 'guild', 'nick',
     )
 
     def __init__(self, guild, user, data={}):
