@@ -27,7 +27,6 @@ class EventHandler:
         else:
             self.client.guilds.add(Guild(self.client, data))
 
-        if not self.emitted_ready:
-            if len([None for g in self.client.guilds if g.unavailable]) == 0:
-                await self.client.emit('ready')
-                self.emitted_ready = True
+        if len([None for g in self.client.guilds if g.unavailable]) == 0:
+            await self.client.emit('ready')
+
