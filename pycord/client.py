@@ -31,6 +31,7 @@ from pycord.utils import Collection
 from pycord.utils import get_event_loop
 from pycord.api import HttpClient, ShardConnection
 from pycord.models import Channel, Guild, Message, User
+from collections import defaultdict
 import time
 
 
@@ -46,7 +47,8 @@ class Client(Emitter):
         self.users = Collection(User)
         self.guilds = Collection(Guild)
         self.channels = Collection(Channel)
-        self.messages = Collection(Message)
+        self.messages = Collection(Message, maxlen=2500)
+        self.commands
 
     def __del__(self):
         if self.is_bot:
@@ -101,3 +103,33 @@ class Client(Emitter):
     async def on_error(self, error):
         '''Default error handler for events'''
         traceback.print_exc()
+
+    async def on_message(self, message):
+        await self.process_commands(message)
+
+
+    async def process_commands(self, msg):
+        args, callback = self.get_command(msg) 
+
+    def get_command(msg):
+        pass
+
+    def add_command(self, name, aliases, callback):
+        aliases = tuple([name].extend(aliases))
+        for key in self.commands:
+            if any(x in key for x in aliases):
+                raise ValueError(f'One of {aliases} is already an existing command')
+        self.commands[aliases] = callback
+
+    def command(self, callback=None,  *, name=None, aliases=[]):
+        if asyncio.iscoroutinefunction(callback):
+            name = name or callback.__name__
+            self.add_command(name, aliases, callback)
+        else:
+            def wrapper(coro):
+                if not asyncio.iscoroutinefunction(coro):
+                    raise RuntimeWarning(f'Callback is not a coroutine!')
+                self.add_command(name or coro.__name__, aliases, coro)
+                return coro
+            return wrapper
+
