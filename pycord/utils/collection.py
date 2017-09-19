@@ -27,8 +27,8 @@ from collections import deque
 class Collection:
     __slots__ = ('data', 'index', 'instance')
 
-    def __init__(self, instance=dict, indexor="id"):
-        self.data = deque()
+    def __init__(self, instance=dict, indexor="id", maxlen=None):
+        self.data = deque(maxlen=maxlen)
         self.index = indexor
         self.instance = instance
 
