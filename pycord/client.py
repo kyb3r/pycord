@@ -33,10 +33,11 @@ from pycord.api import HttpClient, ShardConnection
 from pycord.models import Channel, Guild, Message, User
 from collections import defaultdict
 import time
+import shlex
 
 
 class Client(Emitter):
-    def __init__(self, shard_count=-1):
+    def __init__(self, shard_count=-1, prefixes='py.'):
         super().__init__()
         self.token = ''
         self.is_bot = True
@@ -48,7 +49,8 @@ class Client(Emitter):
         self.guilds = Collection(Guild)
         self.channels = Collection(Channel)
         self.messages = Collection(Message, maxlen=2500)
-        self.commands
+        self.commands = {}
+        self.prefixes = prefixes if isinstance(prefixes, list) else [prefixes]  
 
     def __del__(self):
         if self.is_bot:
@@ -104,18 +106,43 @@ class Client(Emitter):
         '''Default error handler for events'''
         traceback.print_exc()
 
+    async def on_command_error(self, error):
+        traceback.print_exc()
+
     async def on_message(self, message):
         await self.process_commands(message)
 
-
     async def process_commands(self, msg):
-        args, callback = self.get_command(msg) 
+        context = self.get_command_context(msg)
+        if context is None:
+            return
+        msg, callback, alias = context
+        content = msg.content[len(alias):]
+        args = shlex.split(content)
+        try:
+            await callback(msg, *args)
+        except Exception as e:
+            await self.emit('command_error', e)
 
-    def get_command(msg):
-        pass
+    def get_prefix(self, content):
+        for prefix in self.prefixes:
+            if content.startswith(prefix):
+                return prefix
 
+    def get_callback(self, content, prefix):
+        for command in self.commands:
+            for alias in command:
+                if content.startswith(prefix + alias):
+                    return self.commands[command], alias
+
+    def get_command_context(self, msg):
+        content = msg.content
+        prefix = self.get_prefix(content)
+        command, alias = self.get_callback(content, prefix)
+        return msg, command, prefix + alias
+        
     def add_command(self, name, aliases, callback):
-        aliases = tuple([name].extend(aliases))
+        aliases = tuple([name] + aliases)
         for key in self.commands:
             if any(x in key for x in aliases):
                 raise ValueError(f'One of {aliases} is already an existing command')
