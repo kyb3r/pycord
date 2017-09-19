@@ -29,11 +29,13 @@ from pycord.utils import Emitter
 from pycord.models import ClientUser
 from pycord.utils import Collection
 from pycord.utils import get_event_loop
+from pycord.utils.commands import Command, CommandCollection
 from pycord.api import HttpClient, ShardConnection
 from pycord.models import Channel, Guild, Message, User
 from collections import defaultdict
 import time
 import shlex
+import inspect
 
 
 class Client(Emitter):
@@ -49,7 +51,7 @@ class Client(Emitter):
         self.guilds = Collection(Guild)
         self.channels = Collection(Channel)
         self.messages = Collection(Message, maxlen=2500)
-        self.commands = {}
+        self.commands = CommandCollection(self)
         self.prefixes = prefixes if isinstance(prefixes, list) else [prefixes]  
 
     def __del__(self):
@@ -116,13 +118,35 @@ class Client(Emitter):
         context = self.get_command_context(msg)
         if context is None:
             return
+
         msg, callback, alias = context
         content = msg.content[len(alias):]
-        args = shlex.split(content)
+        splitted = shlex.split(content)
+
+        args, kwargs = self.get_signature(callback, splitted)
+
         try:
-            await callback(msg, *args)
+            await callback(msg, *args, **kwargs)
         except Exception as e:
             await self.emit('command_error', e)
+
+    def get_signature(self, callback, splitted):
+        signature = list(inspect.signature(callback).parameters.values())[1:]
+
+        args = []
+        kwargs = {}
+
+        for param in signature:
+            if param.kind.value == 1:
+                args.append(splitted.pop(0))
+            if param.kind.value == 2:
+                args += splitted
+                break
+            if param.kind.value == 3:
+                kwargs[param.name] = ' '.join(splitted)
+                break
+
+        return args, kwargs
 
     def get_prefix(self, content):
         for prefix in self.prefixes:
@@ -131,32 +155,29 @@ class Client(Emitter):
 
     def get_callback(self, content, prefix):
         for command in self.commands:
-            for alias in command:
+            for alias in command.aliases:
                 if content.startswith(prefix + alias):
-                    return self.commands[command], alias
+                    return command.callback, alias
 
     def get_command_context(self, msg):
         content = msg.content
         prefix = self.get_prefix(content)
+        if prefix is None:
+            return
         command, alias = self.get_callback(content, prefix)
         return msg, command, prefix + alias
-        
-    def add_command(self, name, aliases, callback):
-        aliases = tuple([name] + aliases)
-        for key in self.commands:
-            if any(x in key for x in aliases):
-                raise ValueError(f'One of {aliases} is already an existing command')
-        self.commands[aliases] = callback
 
     def command(self, callback=None,  *, name=None, aliases=[]):
         if asyncio.iscoroutinefunction(callback):
             name = name or callback.__name__
-            self.add_command(name, aliases, callback)
+            cmd = Command(self, name=name, callback=callback, aliases=aliases)
+            self.commands.add(cmd)
         else:
             def wrapper(coro):
                 if not asyncio.iscoroutinefunction(coro):
                     raise RuntimeWarning(f'Callback is not a coroutine!')
-                self.add_command(name or coro.__name__, aliases, coro)
+                cmd = Command(self, name=name or coro.__name__, callback=coro, aliases=aliases)
+                self.commands.add(cmd)
                 return coro
             return wrapper
 
