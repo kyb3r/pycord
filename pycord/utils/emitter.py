@@ -24,16 +24,15 @@ SOFTWARE.
 
 import asyncio
 from abc import ABC
+from collections import defaultdict
 
 class Emitter(ABC):
     __slots__ = ('_events')
 
     def __init__(self):
-        self._events = {}
+        self._events = defaultdict(list)
 
     def on(self, event, callback=None):
-        if event not in self._events:
-            self._events[event] = []
         if asyncio.iscoroutinefunction(callback):
             self._events[event].append(callback)
         else:
