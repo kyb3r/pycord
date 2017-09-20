@@ -42,8 +42,9 @@ import pycord
 
 client = pycord.Client()
 
-client.on('ready'):
-    print('Bot online!')
+@client.on('ready')
+async def ready():
+   print('Bot online!')
 
 @client.command()
 async def ping(message): # the message that called the command
@@ -60,3 +61,4 @@ async def kick(msg, member, *, reason):
 
 client.login('token')
 ```
+We will be replacing `message` with seperate context class later on.
