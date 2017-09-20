@@ -24,7 +24,7 @@ SOFTWARE.
 
 from pycord.api.events import EventHandler
 from pycord.utils import get_libname, API
-from pycord.utils import to_json, from_json
+from pycord.utils import from_json
 from pycord.utils import json
 import websockets
 import traceback
@@ -77,7 +77,7 @@ class ShardConnection:
 
     async def send(self, op=DISPATCH, d=None):
         if self.ws is not None:
-            data = to_json({'op': op, 'd': d})
+            data = json.dumps({'op': op, 'd': d})
             await self.ws.send(data)
 
     async def ping(self, data=None):

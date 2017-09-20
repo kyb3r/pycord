@@ -94,12 +94,6 @@ def image_to_string(data):
     data = b64encode(data).decode('ascii')
     return 'data:{0},base64,{1}'.format(mine, data)
 
-def to_json(obj):
-    try:
-        return json.dumps(obj, separators=(',',':'))
-    except:
-        return json.dumps(obj)
-
 def from_json(data):
     return json.loads(data)
 

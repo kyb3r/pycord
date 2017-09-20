@@ -22,7 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
-from pycord.utils import get_event_loop, to_json, from_json, API
+from pycord.utils import get_event_loop, from_json, API
+from pycord.utils import json
 from pycord import __version__, __github__
 from urllib.parse import quote
 import weakref
@@ -124,7 +125,7 @@ class HttpClient:
         data = kwargs.get('data')
         if data is not None:
             if isinstance(data, dict):
-                data = to_json(data)
+                data = json.dumps(data)
             if isinstance(data, str):
                 data = data.encode('utf-8')
 
@@ -215,7 +216,7 @@ class HttpClient:
             'tts' : kwargs.get('tts', False)
         }
 
-        form.add_field('payload_json', to_json(payload))
+        form.add_field('payload_json', json.dumps(payload, indent=4))
 
         for i, (buffer, filename) in enumerate(files):
             form.add_field(f'file{i}', buffer, filename=filename, content_type='application/octet-stream')
