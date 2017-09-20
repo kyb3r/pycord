@@ -22,12 +22,21 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
+import inspect
+
 class Command:
     def __init__(self, client, **kwargs):
         self.client = client
         self.callback = kwargs.get('callback')
         self.name = kwargs.get('name')
         self.aliases = [self.name] + kwargs.get('aliases', [])
+        self.help_doc = self.callback.__doc__
+
+    @property
+    def signature(self):
+        pass
+
+
 
 
 
