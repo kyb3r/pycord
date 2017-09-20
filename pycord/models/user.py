@@ -55,7 +55,7 @@ class User(Snowflake, Sendable, Serializable):
 
     @property
     def mention(self):
-        return '<@{self.id}>'
+        return f'<@{self.id}>'
 
     async def send(self, **kwargs):
         pass
@@ -102,6 +102,10 @@ class Member(Snowflake, Serializable):
 
     def __str__(self):
         return '{0.name}#{0.discrim}'.format(self)
+
+    @property
+    def mention(self):
+        return self.user.mention
 
     @property
     def id(self):
