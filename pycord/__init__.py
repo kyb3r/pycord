@@ -1,6 +1,6 @@
 __title__ = "pycord"
 __license__ = "MIT"
-__version__ = "0.1.2"
+__version__ = "0.2.4a"
 __author__ = ["verixx", "king1600"]
 __github__ = 'https://github.com/verixx/pycord'
 
