@@ -123,28 +123,56 @@ class Client(Emitter):
         content = msg.content[len(alias):]
         splitted = shlex.split(content, posix=False)
 
-        args, kwargs = self.get_signature(callback, splitted)
+        args, kwargs = await self.get_arguments(msg, callback, splitted)
 
         try:
             await callback(msg, *args, **kwargs)
         except Exception as e:
             await self.emit('command_error', e)
 
-    def get_signature(self, callback, splitted):
-        signature = list(inspect.signature(callback).parameters.values())[1:]
+
+    async def convert_argument(self, msg, converter, value):
+
+        if inspect.isclass(converter):
+            obj = converter(msg, value)
+            return obj.convert()
+
+        if asyncio.iscoroutinefunction(converter):
+            return await converter(msg, value)
+        else:
+            return converter(value)
+        
+    def get_converter(self, param):
+        annotation = param.annotation
+        if annotation is param.empty:
+            return str
+        if callable(annotation):
+            return annotation
+        else:
+            raise ValueError('Parameter annotation must be callable')
+
+    async def get_arguments(self, msg, callback, splitted):
+        signature = list(inspect.signature(callback).parameters.values())[1:] # TODO: have to put support for classes
 
         args = []
         kwargs = {}
 
         for param in signature:
+            converter = self.get_converter(param)
+            
             if param.kind.value == 1:
-                args.append(splitted.pop(0).strip('\'\"'))
+                val = splitted.pop(0).strip('\'\"')
+                val = await self.convert_argument(msg, converter, val)
+                args.append(val)
+
             if param.kind.value == 2:
-                args += splitted
-                break
+                for arg in splitted:
+                    val = await self.convert_argument(msg, converter, arg)
+                    args.append(val)
+
             if param.kind.value == 3:
-                kwargs[param.name] = ' '.join(splitted)
-                break
+                val = ' '.join(splitted)
+                kwargs[param.name] = await self.convert_argument(msg, converter, val)
 
         return args, kwargs
 
