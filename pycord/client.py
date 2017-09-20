@@ -121,7 +121,7 @@ class Client(Emitter):
 
         msg, callback, alias = context
         content = msg.content[len(alias):]
-        splitted = shlex.split(content)
+        splitted = shlex.split(content, posix=False)
 
         args, kwargs = self.get_signature(callback, splitted)
 
@@ -138,7 +138,7 @@ class Client(Emitter):
 
         for param in signature:
             if param.kind.value == 1:
-                args.append(splitted.pop(0))
+                args.append(splitted.pop(0).strip('\'\"'))
             if param.kind.value == 2:
                 args += splitted
                 break
