@@ -50,12 +50,12 @@ async def ping(message): # the message that called the command
     message.reply('Pong!')
 
 @client.command() 
-async def add(ctx, *numbers): # different argument examples
+async def add(message, *numbers): # different argument examples
     await message.reply(sum([int(i) for i in numbers]))
 
 @client.command()
-async def kick(ctx, member, *, reason): 
-    await ctx.reply(f'**Kicked:** {member}\n**Reason:** {reason}')
+async def kick(msg, member, *, reason): 
+    await msg.reply(f'**Kicked:** {member}\n**Reason:** {reason}')
     ...
 
 client.login('token')
