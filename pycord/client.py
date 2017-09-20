@@ -30,6 +30,7 @@ from pycord.models import ClientUser
 from pycord.utils import Collection
 from pycord.utils import get_event_loop
 from pycord.utils.commands import Command, CommandCollection
+from pycord.utils.converter import Converter
 from pycord.api import HttpClient, ShardConnection
 from pycord.models import Channel, Guild, Message, User
 from collections import defaultdict
@@ -132,11 +133,9 @@ class Client(Emitter):
 
 
     async def convert_argument(self, msg, converter, value):
-
-        if inspect.isclass(converter):
+        if inspect.isclass(converter) and issubclass(converter, Converter):
             obj = converter(msg, value)
-            return obj.convert()
-
+            converter = obj.convert
         if asyncio.iscoroutinefunction(converter):
             return await converter(msg, value)
         else:
@@ -159,7 +158,7 @@ class Client(Emitter):
 
         for param in signature:
             converter = self.get_converter(param)
-            
+
             if param.kind.value == 1:
                 val = splitted.pop(0).strip('\'\"')
                 val = await self.convert_argument(msg, converter, val)
