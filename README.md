@@ -61,3 +61,4 @@ async def kick(msg, member, *, reason):
 
 client.login('token')
 ```
+We will be replacing `message` with seperate context class later on.
