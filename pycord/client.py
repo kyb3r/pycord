@@ -205,6 +205,6 @@ class Client(Emitter):
                     raise RuntimeWarning(f'Callback is not a coroutine!')
                 cmd = Command(self, name=name or coro.__name__, callback=coro, aliases=aliases)
                 self.commands.add(cmd)
-                return coro
+                return cmd
             return wrapper
 
