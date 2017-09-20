@@ -57,7 +57,7 @@ async def add(message, *numbers: int): # different argument examples
 # type hint converters are supported, can either be a function or a class with a convert() method
 
 @client.command()
-async def kick(msg, member, *, reason): 
+async def kick(msg, member, *, reason): # get the rest of a message
     await msg.reply(f'**Kicked:** {member}\n**Reason:** {reason}')
     ...
 
