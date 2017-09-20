@@ -45,7 +45,7 @@ client = pycord.Client()
 client.on('ready'):
     print('Bot online!')
 
-@client.command():
+@client.command()
 async def ping(message): # the message that called the command
     message.reply('Pong!')
 
