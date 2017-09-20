@@ -49,7 +49,6 @@ client.on('ready'):
 async def ping(message): # the message that called the command
     message.reply('Pong!')
 
-
 @client.command() 
 async def add(ctx, *numbers): # different argument examples
     await message.reply(sum([int(i) for i in numbers]))
@@ -57,5 +56,6 @@ async def add(ctx, *numbers): # different argument examples
 @client.command()
 async def kick(ctx, member, *, reason): 
     await ctx.reply(f'**Kicked:** {member}\n**Reason:** {reason}')
+    ...
 
 ```
