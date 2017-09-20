@@ -48,9 +48,9 @@ class TextChannel(Channel, Sendable, Serializable):
 
     # TODO: add permission overwrites
 
-    async def send(self, content : str=None, **kwargs):
+    async def send(self, content:str=None, **kwargs):
         api = self.guild.client.api
-        kwargs['content'] = content
+        kwargs['content'] = str(content)
         return await api.send_message(self, **kwargs)
 
     async def trigger_typing(self):
