@@ -564,7 +564,7 @@ class HttpClient:
     def invites_from(self, guild):
         return self.get(f'/guilds/{guild.id}/invites')
 
-    def invites_from_channel(self, channel.id):
+    def invites_from_channel(self, channel):
         return self.request(f'/channels/{channel.id}/invites')
 
     def delete_invite(self, invite_id, *, reason=None):
