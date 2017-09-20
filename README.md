@@ -35,7 +35,7 @@ async def ping_command(message):
 client.login('token')
 ```
 
-Commands examples:
+### Commands examples
 
 ```py
 import pycord
@@ -58,4 +58,5 @@ async def kick(ctx, member, *, reason):
     await ctx.reply(f'**Kicked:** {member}\n**Reason:** {reason}')
     ...
 
+client.login('token')
 ```
