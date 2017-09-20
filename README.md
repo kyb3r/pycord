@@ -8,7 +8,7 @@
 </div> 
 
 ## About
-pycord is a discord api wrapper currently in development. Its being designed so its easy to use in an object oriented style. It has a commands system currently under development that makes it easy to write discord bots.
+pycord is a discord api wrapper currently in development. Its easy to use, asynchronous and object oriented. It has a commands framework currently under development that makes it easy to write discord bots.
 
 ## Installation
 The library isn't done yet so its not registered on the pypi. However if you want to test it out, just clone this repository!
