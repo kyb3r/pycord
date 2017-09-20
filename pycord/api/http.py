@@ -444,10 +444,174 @@ class HttpClient:
             'username': username,
             'discriminator': int(discriminator)
         }
-        return self.request('/users/@me/relationships', json=payload)
+        return self.post('/users/@me/relationships', json=payload)
 
 
 
 
+    def create_webhook(self, channel, *, name=None, avatar=None):
+        route = f'/channels/{channel.id}/webhooks'
 
+        payload = {}
+        if name is not None:
+            payload['name'] = name
+        if avatar is not None:
+            payload['avatar'] = avatar
 
+        return self.post(route, json=payload)
+
+    def channel_webhooks(self, channel):
+        return self.get(f'/channels/{channel.id}/webhooks')
+
+    def guild_webhooks(self, guild):
+        return self.get(f'/guilds/{guild.id}/webhooks')
+
+    def get_webhook(self, webhook):
+        return self.get(f'/webhooks/{webhook.id}')
+
+    def leave_guild(self, guild):
+        return self.delete(f'/users/@me/guilds/{guild.id}')
+
+    def delete_guild(self, guild):
+        return self.delete(f'/guilds/{guild.id}')
+
+    def create_guild(self, name, region, icon):
+        payload = {
+            'name': name,
+            'icon': icon,
+            'region': region
+        }
+        return self.post('/guilds', json=payload)
+
+    def edit_guild(self, guild, *, reason=None, **fields):
+        valid_keys = ('name', 'region', 'icon', 'afk_timeout', 'owner_id',
+                      'afk_channel_id', 'splash', 'verification_level',
+                      'system_channel_id')
+
+        payload = {
+            k: v for k, v in fields.items() if k in valid_keys
+        }
+
+        return self.patch(f'/guilds/{guild.id}', json=payload, reason=reason)
+
+    def get_bans(self, guild):
+        return self.get(f'/guilds/{guild.id}/bans')
+
+    def get_vanity_code(self, guild):
+        return self.get('/guilds/{guild.id}/vanity-url')
+
+    def change_vanity_code(self, guild, code, *, reason=None):
+        payload = { 'code': code }
+        return self.patch(f'/guilds/{guild.id}/vanity-url', json=payload, reason=reason)
+
+    def prune_members(self, guild, days, *, reason=None):
+        params = {
+            'days': days
+        }
+        return self.post(f'/guilds/{guild.id}/prune', params=params, reason=reason)
+
+    def estimate_pruned_members(self, guild, days):
+        params = {
+            'days': days
+        }
+        return self.get(f'/guilds/{guild.id}/prune', params=params)
+
+    def create_custom_emoji(self, guild, name, image, *, reason=None):
+        payload = {
+            'name': name,
+            'image': image
+        }
+
+        return self.post(f'/guilds/{guild.id}/emojis', json=payload, reason=reason)
+
+    def delete_custom_emoji(self, guild, emoji, *, reason=None):
+        return self.delete(f'/guilds/{guild.id}/emojis/{emoji.id}', reason=reason)
+
+    def edit_custom_emoji(self, guild, emoji, *, name, reason=None):
+        payload = {
+            'name': name
+        }
+        route = f'/guilds/{guild.id}/emojis/{emoji.id}'
+        return self.patch(route, json=payload, reason=reason)
+
+    def get_audit_logs(self, guild, limit=100, before=None, after=None, user_id=None, action_type=None):
+        params = { 'limit': limit }
+        if before:
+            params['before'] = before
+        if after:
+            params['after'] = after
+        if user_id:
+            params['user_id'] = user_id
+        if action_type:
+            params['action_type'] = action_type
+        
+        return self.get(f'/guilds/{guild.id}/audit-logs', params=params)
+
+    def create_invite(self, channel, *, reason=None, **kwargs):
+        
+        payload = {
+            'max_age': kwargs.get('max_age', 0),
+            'max_uses': kwargs.get('max_uses', 0),
+            'temporary': kwargs.get('temporary', False),
+            'unique': kwargs.get('unique', True)
+        }
+
+        return self.post(f'/channels/{channel.id}/invites', reason=reason, json=payload)
+
+    def get_invite(self, invite_id):
+        return self.get(f'/invite/{invite_id}')
+
+    def invites_from(self, guild):
+        return self.get(f'/guilds/{guild.id}/invites')
+
+    def invites_from_channel(self, channel.id):
+        return self.request(f'/channels/{channel.id}/invites')
+
+    def delete_invite(self, invite_id, *, reason=None):
+        return self.delete(f'/invite/{invite_id}', reason=reason)
+
+    def edit_role(self, guild, role, *, reason=None, **fields):
+        route = f'/guilds/{guild.id}/roles/{role.id}'
+        valid_keys = ('name', 'permissions', 'color', 'hoist', 'mentionable')
+        payload = {
+            k: v for k, v in fields.items() if k in valid_keys
+        }
+        return self.patch(route, json=payload, reason=reason)
+
+    def delete_role(self, guild, role, *, reason=None):
+        route = f'/guilds/{guild.id}/roles/{role.id}'
+        return self.delete(route, reason=reason)
+
+    def replace_roles(self, user, guild, role_ids, *, reason=None):
+        return self.edit_member(guild=guild, user=user, roles=role_ids, reason=reason)
+
+    def create_role(self, guild, *, reason=None, **fields):
+        return self.post(f'/guilds/{guild.id}/roles', json=fields, reason=reason)
+
+    def move_role_position(self, guild, positions, *, reason=None):
+        return self.patch(f'/guilds/{guild.id}/roles', json=positions, reason=reason)
+
+    def add_role(self, guild, user, role, *, reason=None):
+        route = f'/guilds/{guild.id}/members/{user.id}/roles/{role.id}'
+        return self.put(route, reason=reason)
+
+    def remove_role(self, guild, user, role, *, reason=None):
+        route = f'/guilds/{guild.id}/members/{user.id}/roles/{role.id}'
+        return self.delete(route, reason=reason)
+
+    def edit_channel_permissions(self, channel, target, allow, deny, type, *, reason=None):
+        payload = {
+            'id': target,
+            'allow': allow,
+            'deny': deny,
+            'type': type
+        }
+        route = f'/channels/{channel.id}/permissions/{target}'
+        return self.put(route, json=payload, reason=reason)
+
+    def delete_channel_permissions(self, channel_id, target, *, reason=None):
+        route = f'/channels/{channel.id}/permissions/{target}'
+        return self.delete(route, reason=reason)
+
+    def move_member(self, user, guild, channel, *, reason=None): # (voice)
+        return self.edit_member(guild=guild, user=user, channel_id=channel.id, reason=reason)
