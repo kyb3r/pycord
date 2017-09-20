@@ -42,7 +42,7 @@ import pycord
 
 client = pycord.Client()
 
-@client.on('ready'):
+@client.on('ready')
 async def ready():
    print('Bot online!')
 
