@@ -49,6 +49,6 @@ class Message(Snowflake, Serializable):
 
 
     async def reply(self, content : str=None, **kwargs):
-        kwargs['content'] = content
+        kwargs['content'] = str(content)
         return await self.client.api.send_message(self.channel, **kwargs)
 #todo
