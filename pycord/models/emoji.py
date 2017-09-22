@@ -23,7 +23,7 @@ SOFTWARE.
 '''
 
 
-from .core import Snowflake, Serializable
+from ..core import Snowflake, Serializable
 
 class Emoji(Snowflake, Serializable):
     __slots__ = ('guild')

@@ -25,14 +25,14 @@ SOFTWARE.
 
 import asyncio
 import traceback
-from pycord.utils import Emitter
-from pycord.models import ClientUser
-from pycord.utils import Collection
-from pycord.utils import get_event_loop
-from pycord.utils.commands import Command, CommandCollection
-from pycord.utils.converter import Converter
-from pycord.api import HttpClient, ShardConnection
-from pycord.models import Channel, Guild, Message, User
+from ..utils import Emitter
+from ..models import ClientUser
+from ..utils import Collection
+from ..utils import get_event_loop
+from ..utils.commands import Command, CommandCollection, Context
+from ..utils.converter import Converter
+from ..api import HttpClient, ShardConnection
+from ..models import Channel, Guild, Message, User
 from collections import defaultdict
 import time
 import shlex

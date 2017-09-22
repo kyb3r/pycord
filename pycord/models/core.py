@@ -23,7 +23,7 @@ SOFTWARE.
 '''
 
 
-from pycord.utils import id_to_time
+from ..utils import id_to_time
 from abc import ABC, abstractmethod
 
 class Snowflake(ABC):

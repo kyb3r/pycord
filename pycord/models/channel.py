@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
-from pycord.models.core import Snowflake, Sendable, Serializable
+from ..models.core import Snowflake, Sendable, Serializable
 
 class ChannelType:
     Text = 0

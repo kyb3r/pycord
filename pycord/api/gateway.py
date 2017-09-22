@@ -22,10 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
-from pycord.api.events import EventHandler
-from pycord.utils import get_libname, API
-from pycord.utils import from_json
-from pycord.utils import json
+from ..api.events import EventHandler
+from ..utils import get_libname, API
+from ..utils import from_json
+from ..utils import json
 import websockets
 import traceback
 import platform

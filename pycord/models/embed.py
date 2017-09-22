@@ -23,7 +23,7 @@ SOFTWARE.
 '''
 
 
-from pycord.utils import parse_time
+from ..utils import parse_time
 
 class Embed:
     '''Class that formats an embed'''

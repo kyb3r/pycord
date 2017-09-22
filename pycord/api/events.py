@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
-from pycord.models import ClientUser, Guild, Message
-from pycord.utils import json
+from ..models import ClientUser, Guild, Message
+from ..utils import json
 from collections import deque
 
 

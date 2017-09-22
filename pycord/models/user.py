@@ -23,9 +23,9 @@ SOFTWARE.
 '''
 
 
-from pycord.models.core import Snowflake, Sendable, Serializable
-from pycord.models.role import Role
-from pycord.utils import Collection
+from ..models.core import Snowflake, Sendable, Serializable
+from ..models.role import Role
+from ..utils import Collection
 
 
 class User(Snowflake, Sendable, Serializable):

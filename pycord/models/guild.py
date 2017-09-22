@@ -23,12 +23,12 @@ SOFTWARE.
 '''
 
 
-from pycord.models.channel import Channel, TextChannel, VoiceChannel
-from pycord.models.core import Snowflake, Serializable
-from pycord.models.user import Member, User
-from pycord.models.role import Role
-from pycord.models.emoji import Emoji
-from pycord.utils import Collection
+from ..models.channel import Channel, TextChannel, VoiceChannel
+from ..models.core import Snowflake, Serializable
+from ..models.user import Member, User
+from ..models.role import Role
+from ..models.emoji import Emoji
+from ..utils import Collection
 
 
 class Guild(Snowflake, Serializable):

@@ -23,8 +23,8 @@ SOFTWARE.
 '''
 
 
-from pycord.models.core import Snowflake, Serializable
-from pycord.models.perms import Permissions
+from ..models.core import Snowflake, Serializable
+from ..models.perms import Permissions
 
 class Role(Snowflake, Serializable):
 

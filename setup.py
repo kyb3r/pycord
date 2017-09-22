@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(
-  name = 'pycord',
+  name = 'py-cord',
   packages = ['pycord'], # this must be the same as the name above
   version = '0.2.4a',
   description = 'An async discord api wrapper',
