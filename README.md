@@ -48,7 +48,8 @@ async def ready():
 
 @client.command()
 async def ping(ctx): # the message that called the command
-    ctx.send('Pong!') # yes, it does look like d.py :/ 
+    await ctx.send('Pong!') # yes, it does look like d.py :/ 
+			    # going for a clean style for commands anyways
 
 @client.command() 
 async def add(ctx, *numbers: int):
@@ -56,4 +57,21 @@ async def add(ctx, *numbers: int):
 
 client.login('token')
 ```
+
+How to send messages
+```py
+await channel.send('content')
+await message.reply('content')
+await message.channel.send('content')
+```
+
+How to send embeds
+```py
+em = pycord.Embed(title='Hi there', color=0x00FFFF)
+em.set_author('Bob')
+em.add_field('oi','this is a value')
+
+await channel.send('pretext', embed=em)
+```
+
 We will be replacing `message` with seperate context class later on.
