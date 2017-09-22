@@ -60,6 +60,7 @@ client.login('token')
 
 How to send messages
 ```py
+await ctx.send('content')
 await channel.send('content')
 await message.reply('content')
 await message.channel.send('content')
