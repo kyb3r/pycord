@@ -23,6 +23,9 @@ SOFTWARE.
 '''
 
 import inspect
+import shlex
+import asyncio
+
 
 class Command:
     def __init__(self, client, **kwargs):
@@ -30,22 +33,140 @@ class Command:
         self.callback = kwargs.get('callback')
         self.name = kwargs.get('name')
         self.aliases = [self.name] + kwargs.get('aliases', [])
-        self.help_doc = self.callback.__doc__
+        self.help_doc = inspect.getdoc(self.callback)
 
     @property
     def signature(self):
         pass
 
+    async def invoke(self, *args, **kwargs):
+        try:
+            await self.callback(*args, **kwargs)
+        except Exception as e:
+            await self.client.emit('command_error', e)
 
 
 
+class Context:
+    def __init__(self, client, message):
+        self.client = client
+        self.message = message
+
+    @property
+    def session(self):
+        return self.client.session
+
+    @property
+    def author(self):
+        return self.message.author
+
+    @property
+    def guild(self):
+        return self.message.guild
+
+    @property
+    def channel(self):
+        return self.message.channel
+
+    @property
+    def content(self):
+        return self.message.content
+
+    @property
+    def command(self):
+        for command in self.client.commands:
+            for alias in command.aliases:
+                if self.content.startswith(self.prefix + alias):
+                    self.alias = alias
+                    return command
+        return None
+
+    @property
+    def callback(self):
+        return self.command.callback
+
+    @property
+    def alias(self):
+        for command in self.client.commands:
+            for alias in command.aliases:
+                if self.content.startswith(self.prefix + alias):
+                    return alias
+        return None
+
+    @property
+    def prefix(self):
+        for prefix in self.client.prefixes:
+            if self.content.startswith(prefix):
+                return prefix
+
+    @property
+    def command_content(self):
+        cut = len(self.prefix + self.alias)
+        return self.content[cut:]
+
+    async def invoke(self):
+        if self.command is None:
+            return
+        args, kwargs = await self.get_arguments()
+        callback = self.command.callback
+        try:
+            await callback(self, *args, **kwargs)
+        except Exception as e:
+            await self.client.emit('command_error', e)
+
+    async def get_arguments(self):
+
+        signature = inspect.signature(self.callback).parameters.items()
+        try:
+            splitted = shlex.split(self.command_content, posix=False)
+        except:
+            splitted = self.command_content.split()
+
+        arguments = []
+        kwargs = {}
+
+        for index, (name, param) in enumerate(signature):
+            if index == 0:
+                continue
+            if param.kind is param.POSITIONAL_OR_KEYWORD:
+                arg = await self.convert(param, splitted.pop(0).strip('\'"'))
+                arguments.append(arg)
+            if param.kind is param.VAR_KEYWORD:
+                for arg in splitted:
+                    arg = await self.convert(param, arg)
+                    arguments.append(arg)
+            if param.kind is param.KEYWORD_ONLY:
+                arg = await self.convert(param, ' '.join(msg))
+                self.kwargs[name] = arg
+
+        return arguments, kwargs
+
+    async def convert_argument(self, param, value):
+        converter = self.get_converter(param)
+        if inspect.isclass(converter) and issubclass(converter, Converter):
+            obj = converter(self, value)
+            converter = obj.convert
+        if asyncio.iscoroutinefunction(converter):
+            return await converter(self, value)
+        else:
+            return converter(self, value)
+        
+    def get_converter(self, param):
+        if param.annotation is param.empty:
+            return str
+        if callable(annotation):
+            return param.annotation
+        else:
+            raise ValueError('Parameter annotation must be callable')
+
+    async def send(self, content, **kwargs):
+        return self.message.reply(content, **kwargs)
 
 
 class CommandCollection:
     def __init__(self, client):
         self.client = client
         self.commands = {}
-
 
     def __iter__(self):
         for cmd in self.commands.values():

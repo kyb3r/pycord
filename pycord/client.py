@@ -53,7 +53,8 @@ class Client(Emitter):
         self.channels = Collection(Channel)
         self.messages = Collection(Message, maxlen=2500)
         self.commands = CommandCollection(self)
-        self.prefixes = prefixes if isinstance(prefixes, list) else [prefixes]  
+        self.prefixes = prefixes if isinstance(prefixes, list) else [prefixes]
+        self.session = aiohttp.ClientSession(loop=self.loop) # public session
 
     def __del__(self):
         if self.is_bot:
@@ -116,83 +117,8 @@ class Client(Emitter):
         await self.process_commands(message)
 
     async def process_commands(self, msg):
-        context = self.get_command_context(msg)
-        if context is None:
-            return
-
-        msg, callback, alias = context
-        content = msg.content[len(alias):]
-        splitted = shlex.split(content, posix=False)
-
-        args, kwargs = await self.get_arguments(msg, callback, splitted)
-
-        try:
-            await callback(msg, *args, **kwargs)
-        except Exception as e:
-            await self.emit('command_error', e)
-
-
-    async def convert_argument(self, msg, converter, value):
-        if inspect.isclass(converter) and issubclass(converter, Converter):
-            obj = converter(msg, value)
-            converter = obj.convert
-        if asyncio.iscoroutinefunction(converter):
-            return await converter(msg, value)
-        else:
-            return converter(value)
-        
-    def get_converter(self, param):
-        annotation = param.annotation
-        if annotation is param.empty:
-            return str
-        if callable(annotation):
-            return annotation
-        else:
-            raise ValueError('Parameter annotation must be callable')
-
-    async def get_arguments(self, msg, callback, splitted):
-        signature = list(inspect.signature(callback).parameters.values())[1:] # TODO: have to put support for classes
-
-        args = []
-        kwargs = {}
-
-        for param in signature:
-            converter = self.get_converter(param)
-
-            if param.kind.value == 1:
-                val = splitted.pop(0).strip('\'\"')
-                val = await self.convert_argument(msg, converter, val)
-                args.append(val)
-
-            if param.kind.value == 2:
-                for arg in splitted:
-                    val = await self.convert_argument(msg, converter, arg)
-                    args.append(val)
-
-            if param.kind.value == 3:
-                val = ' '.join(splitted)
-                kwargs[param.name] = await self.convert_argument(msg, converter, val)
-
-        return args, kwargs
-
-    def get_prefix(self, content):
-        for prefix in self.prefixes:
-            if content.startswith(prefix):
-                return prefix
-
-    def get_callback(self, content, prefix):
-        for command in self.commands:
-            for alias in command.aliases:
-                if content.startswith(prefix + alias):
-                    return command.callback, alias
-
-    def get_command_context(self, msg):
-        content = msg.content
-        prefix = self.get_prefix(content)
-        if prefix is None:
-            return
-        command, alias = self.get_callback(content, prefix)
-        return msg, command, prefix + alias
+        context = Context(self, msg)
+        await context.invoke()
 
     def command(self, callback=None,  *, name=None, aliases=[]):
         if asyncio.iscoroutinefunction(callback):
