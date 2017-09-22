@@ -75,4 +75,3 @@ em.add_field('oi','this is a value')
 await channel.send('pretext', embed=em)
 ```
 
-We will be replacing `message` with seperate context class later on.
