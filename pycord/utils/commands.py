@@ -74,10 +74,11 @@ class Context:
 
     @property
     def command(self):
+        if self.prefix is None:
+            return None
         for command in self.client.commands:
             for alias in command.aliases:
                 if self.content.startswith(self.prefix + alias):
-                    self.alias = alias
                     return command
         return None
 
@@ -159,7 +160,7 @@ class Context:
         else:
             raise ValueError('Parameter annotation must be callable')
 
-    async def send(self, content, **kwargs):
+    def send(self, content, **kwargs):
         return self.message.reply(content, **kwargs)
 
 

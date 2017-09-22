@@ -25,6 +25,7 @@ SOFTWARE.
 
 import asyncio
 import traceback
+import aiohttp
 from .utils import Emitter
 from .models import ClientUser
 from .utils import Collection

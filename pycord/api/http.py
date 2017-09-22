@@ -24,7 +24,7 @@ SOFTWARE.
 
 from ..utils import get_event_loop, from_json, API
 from ..utils import json
-from . import __version__, __github__
+from .. import __version__, __github__
 from urllib.parse import quote
 import weakref
 import aiohttp
