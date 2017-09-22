@@ -25,14 +25,14 @@ SOFTWARE.
 
 import asyncio
 import traceback
-from ..utils import Emitter
-from ..models import ClientUser
-from ..utils import Collection
-from ..utils import get_event_loop
-from ..utils.commands import Command, CommandCollection, Context
-from ..utils.converter import Converter
-from ..api import HttpClient, ShardConnection
-from ..models import Channel, Guild, Message, User
+from .utils import Emitter
+from .models import ClientUser
+from .utils import Collection
+from .utils import get_event_loop
+from .utils.commands import Command, CommandCollection, Context
+from .utils.converter import Converter
+from .api import HttpClient, ShardConnection
+from .models import Channel, Guild, Message, User
 from collections import defaultdict
 import time
 import shlex
