@@ -25,7 +25,7 @@ SOFTWARE.
 import inspect
 import shlex
 import asyncio
-
+from .converter import Converter
 
 class Command:
     def __init__(self, client, **kwargs):
@@ -137,12 +137,16 @@ class Context:
                     arg = await self.convert(param, arg)
                     arguments.append(arg)
             if param.kind is param.KEYWORD_ONLY:
-                arg = await self.convert(param, ' '.join(msg))
-                self.kwargs[name] = arg
+                arg = await self.convert(param, ' '.join(splitted))
+                kwargs[name] = arg
+
+        for key in kwargs.copy():
+            if not kwargs[key]:
+                kwargs.pop(key)
 
         return arguments, kwargs
 
-    async def convert_argument(self, param, value):
+    async def convert(self, param, value):
         converter = self.get_converter(param)
         if inspect.isclass(converter) and issubclass(converter, Converter):
             obj = converter(self, value)
@@ -150,12 +154,12 @@ class Context:
         if asyncio.iscoroutinefunction(converter):
             return await converter(self, value)
         else:
-            return converter(self, value)
+            return converter(value)
         
     def get_converter(self, param):
         if param.annotation is param.empty:
             return str
-        if callable(annotation):
+        if callable(param.annotation):
             return param.annotation
         else:
             raise ValueError('Parameter annotation must be callable')
