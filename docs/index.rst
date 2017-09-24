@@ -1,9 +1,9 @@
-.. Unbelievable Bot documentation master file, created by
+.. pycord documentation master file, created by
    sphinx-quickstart on Wed Apr 19 17:08:55 2017.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Unbelievable Bot's documentation!
+Welcome to Pycord's documentation!
 ============================================
 
 .. toctree::
