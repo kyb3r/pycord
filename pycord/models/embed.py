@@ -24,8 +24,9 @@ SOFTWARE.
 
 
 from ..utils import parse_time
+from .core import Serializable
 
-class Embed:
+class Embed(Serializable):
     '''Class that formats an embed'''
     __slots__ = (
         'color','title','url','author',
