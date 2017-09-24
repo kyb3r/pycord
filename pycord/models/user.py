@@ -90,11 +90,12 @@ class ClientUser(User):
 class Member(Snowflake, Serializable):
 
     __slots__ = (
-        'roles', 'user', 'guild', 'nick',
+        'roles', 'user', 'guild', 'nick','client'
     )
 
-    def __init__(self, guild, user, data={}):
+    def __init__(self, client, guild, user, data={}):
         super().__init__()
+        self.client = client
         self.guild = guild
         self.user = user
         self.roles = Collection(Role)
@@ -131,7 +132,6 @@ class Member(Snowflake, Serializable):
     def verified(self):
         return self.user.verified
 
-
     def from_dict(self, data):
         self.nick = data.get('nick')
 
@@ -140,6 +140,16 @@ class Member(Snowflake, Serializable):
                 role = self.guild._roles.get(int(role))
                 if role:
                     self.roles.add(role)
+
+    async def kick(self, reason=None):
+        await self.client.api.kick(self, self.guild, reason)
+
+    async def ban(self, reason=None, delete_message_days=1):
+        await self.client.api.ban(self, self.guild, delete_message_days, reason)
+
+    async def unban(self, reason=None):
+        await self.client.api.unban(self, self.guild, reason=reason)
+
 
 # not done yet
 
