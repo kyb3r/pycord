@@ -81,7 +81,7 @@ class Guild(Snowflake, Serializable):
                 else:
                     user = self.client.users.get(user_id)
 
-            self._members.add(Member(self, user, member))
+            self._members.add(Member(self.client, self, user, member))
 
         for channel_data in data.get('channels', []):
             chan_type = channel_data.get('type')
