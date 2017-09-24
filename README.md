@@ -11,7 +11,7 @@
 pycord is a discord api wrapper currently in development. Its easy to use, asynchronous and object oriented. It has a commands framework currently under development that makes it easy to write discord bots.
 
 ## Installation
-The library isn't done yet so its not registered on the pypi. However if you want to test it out, just clone this repository!
+You can easily install the pre-release of this library by doing `pip3 install py-cord`
 
 ## Examples
 
@@ -47,20 +47,31 @@ async def ready():
    print('Bot online!')
 
 @client.command()
-async def ping(message): # the message that called the command
-    message.reply('Pong!')
+async def ping(ctx): # the message that called the command
+    await ctx.send('Pong!') # yes, it does look like d.py :/ 
+			    # going for a clean style for commands anyways
 
 @client.command() 
-async def add(message, *numbers: int): # different argument examples
-    await message.reply(sum(numbers))
-
-# type hint converters are supported, can either be a function or a class with a convert() method
-
-@client.command()
-async def kick(msg, member, *, reason): # get the rest of a message
-    await msg.reply(f'**Kicked:** {member}\n**Reason:** {reason}')
-    ...
+async def add(ctx, *numbers: int):
+    await ctx.send(sum(numbers))
 
 client.login('token')
 ```
-We will be replacing `message` with seperate context class later on.
+
+How to send messages
+```py
+await ctx.send('content')
+await channel.send('content')
+await message.reply('content')
+await message.channel.send('content')
+```
+
+How to send embeds
+```py
+em = pycord.Embed(title='Hi there', color=0x00FFFF)
+em.set_author('Bob')
+em.add_field('oi','this is a value')
+
+await channel.send('pretext', embed=em)
+```
+
