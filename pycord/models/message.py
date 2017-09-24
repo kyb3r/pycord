@@ -38,14 +38,13 @@ class Message(Snowflake, Serializable):
     def from_dict(self, data):
         self.id = int(data.get('id'))
         self.content = data.get('content')
-        
         channel_id = int(data['channel_id'], 0)
         self.channel = self.client.channels.get(channel_id)
         self.guild = self.channel.guild
-
         if 'author' in data:
             author_id = int(data['author']['id'])
             self.author = self.client.users.get(author_id)
+
 
 
     async def reply(self, content : str=None, **kwargs):
