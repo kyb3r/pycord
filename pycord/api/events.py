@@ -59,3 +59,6 @@ class EventHandler:
             if len([None for g in self.client.guilds if g.unavailable]) == 0:
                 await self.client.emit('ready')
 
+    async def handle_member_join(self, data):
+        pass
+
