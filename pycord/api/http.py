@@ -118,8 +118,8 @@ class HttpClient:
         headers = {'User-Agent': self.user_agent}
         if self.token is not None:
             headers['Authorization'] = f'Bot {self.token}'
-        if 'reason' in kwargs:
-            headers['X-Audit-Log-Reason'] = kwargs.get('reason')
+        if kwargs.get('reason'):
+            headers['X-Audit-Log-Reason'] = quote(kwargs.get('reason'), safe='/ ')
         
         # get data
         data = kwargs.get('data')
@@ -131,6 +131,8 @@ class HttpClient:
 
             headers['Content-Type'] = 'application/json'
 
+        _json = kwargs.get('json')
+
         # check if global rate limited
         if not self.global_event.is_set():
             await self.global_event.wait()
@@ -138,7 +140,7 @@ class HttpClient:
         # open http request with retries
         async with HoldableLock(lock) as hold_lock:
             for tries in range(self.retries):
-                async with self.session.request(method, endpoint, headers=headers, data=data) as resp:
+                async with self.session.request(method, endpoint, headers=headers, data=data, json=_json) as resp:
 
                     # get response and header data
                     data = await resp.text(encoding='utf-8')
@@ -370,7 +372,7 @@ class HttpClient:
         if reason:
             route += f'?reason={quote(reason)}'
 
-        return self.put(r, params=params)
+        return self.put(route, params=params)
 
     def unban(self, member, guild, *, reason=None):
         route = f'/guilds/{guild.id}/bans/{member.id}'
