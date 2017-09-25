@@ -1,4 +1,4 @@
-'''
+"""
 MIT License
 
 Copyright (c) 2017 verixx / king1600
@@ -20,9 +20,10 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-'''
+"""
 
 from ..models.core import Snowflake, Sendable, Serializable
+
 
 class ChannelType:
     Text = 0
@@ -31,8 +32,10 @@ class ChannelType:
     GroupDm = 3
     Category = 4
 
+
 class Channel(Snowflake):
     Type = ChannelType
+
 
 class TextChannel(Channel, Sendable, Serializable):
   
@@ -55,6 +58,7 @@ class TextChannel(Channel, Sendable, Serializable):
 
     async def trigger_typing(self):
         pass
+
 
 class VoiceChannel(Channel, Serializable):
     __slots__ = ('name', 'position', 'guild', 'client')

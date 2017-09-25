@@ -1,4 +1,4 @@
-'''
+"""
 MIT License
 
 Copyright (c) 2017 verixx / king1600
@@ -20,7 +20,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-'''
+"""
 
 
 from ..models.core import Snowflake, Sendable, Serializable
@@ -35,10 +35,11 @@ class User(Snowflake, Sendable, Serializable):
         'discriminator', 'bot', 'verified'
         )
 
-    def __init__(self, client, data={}):
+    def __init__(self, client, data=None):
+        if data is None:
+            data = {}
         self.from_dict(data)
         self.id = int(data.get('id', 0))
-
 
     def from_dict(self, data):
         self.name = data.get('username')
@@ -51,7 +52,7 @@ class User(Snowflake, Sendable, Serializable):
         return '{0.name}#{0.discrim}'.format(self)
 
     def __eq__(self, other):
-        return isinstance(other, self) and other.id == self.id
+        return isinstance(other, __class__) and other.id == self.id
 
     @property
     def mention(self):
@@ -93,7 +94,9 @@ class Member(Snowflake, Serializable):
         'roles', 'user', 'guild', 'nick','client'
     )
 
-    def __init__(self, client, guild, user, data={}):
+    def __init__(self, client, guild, user, data=None):
+        if data is None:
+            data = {}
         super().__init__()
         self.client = client
         self.guild = guild

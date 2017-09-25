@@ -1,4 +1,4 @@
-'''
+"""
 MIT License
 
 Copyright (c) 2017 verixx / king1600
@@ -20,16 +20,17 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-'''
+"""
 
 import pycord
 
-'''
+"""
 Example showing off how beautiful 
 the design of this api wrapper is ;)
-'''
+"""
 
 client = pycord.Client()
+
 
 @client.on('ready')
 async def on_ready():
@@ -38,9 +39,11 @@ async def on_ready():
     print(f'Is Bot: {client.user.bot}')
     print(f'With {len(client.guilds)} guilds')
 
+
 @client.on('message')
 async def ping_command(message):
     if message.content.startswith('py.ping'):
         await message.reply('Pong!')
+
 
 client.login('token')

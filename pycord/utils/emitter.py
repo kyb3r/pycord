@@ -1,4 +1,4 @@
-'''
+"""
 MIT License
 
 Copyright (c) 2017 verixx / king1600
@@ -20,24 +20,25 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-'''
+"""
 
-import asyncio
+import inspect
 from abc import ABC
 from collections import defaultdict
 
+
 class Emitter(ABC):
-    __slots__ = ('_events')
+    __slots__ = ('_events',)
 
     def __init__(self):
         self._events = defaultdict(list)
 
     def on(self, event, callback=None):
-        if asyncio.iscoroutinefunction(callback):
+        if inspect.iscoroutinefunction(callback):
             self._events[event].append(callback)
         else:
             def wrapper(coro):
-                if not asyncio.iscoroutinefunction(coro):
+                if not inspect.iscoroutinefunction(coro):
                     raise RuntimeWarning(f'Callback is not a coroutine!')
                 self._events[event].append(coro)
                 return coro
@@ -53,5 +54,3 @@ class Emitter(ABC):
                     await callback(*args, **kwargs)
         except Exception as e:
             await self.emit('error', e)
-
-

@@ -1,4 +1,4 @@
-'''
+"""
 MIT License
 
 Copyright (c) 2017 verixx / king1600
@@ -20,24 +20,24 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-'''
+"""
 
-
-import asyncio
+import inspect
+import time
 import traceback
-import aiohttp
-from .utils import Emitter
-from .models import ClientUser
-from .utils import Collection
-from .utils import get_event_loop
-from .utils.commands import Command, CommandCollection, Context
-from .utils.converter import Converter
+
+import asks
+import multio
+import trio
+
 from .api import HttpClient, ShardConnection
 from .models import Channel, Guild, Message, User
-from collections import defaultdict
-import time
-import shlex
-import inspect
+from .utils import Collection
+from .utils import Emitter
+from .utils.commands import Command, CommandCollection, Context
+
+multio.init("trio")
+asks.init("trio")
 
 
 class Client(Emitter):
@@ -45,9 +45,9 @@ class Client(Emitter):
         super().__init__()
         self.token = ''
         self.is_bot = True
-        self.loop = get_event_loop()
-        self.running = asyncio.Event()
-        self.api = HttpClient(self.loop)
+        self._boot_up_time = None
+        self.running = trio.Event()
+        self.api = HttpClient()
         self.shards = [] if shard_count < 1 else list(range(shard_count))
         self.users = Collection(User)
         self.guilds = Collection(Guild)
@@ -55,7 +55,7 @@ class Client(Emitter):
         self.messages = Collection(Message, maxlen=2500)
         self.commands = CommandCollection(self)
         self.prefixes = prefixes if isinstance(prefixes, list) else [prefixes]
-        self.session = aiohttp.ClientSession(loop=self.loop) # public session
+        self.session = asks.Session()  # public session
 
     def __del__(self):
         if self.is_bot:
@@ -67,7 +67,7 @@ class Client(Emitter):
         self.running.set()
 
     def close(self):
-        self.loop.run_until_complete(self._close())
+        trio.run(self._close)
 
     async def start(self, token, bot):
         self.is_bot = bot
@@ -88,10 +88,11 @@ class Client(Emitter):
             shard_count = len(self.shards)
 
         # spawn shard connections
-        for shard_id in range(shard_count):
-            shard = ShardConnection(self, shard_id, shard_count)
-            self.shards[shard_id] = shard
-            self.loop.create_task(shard.start(url))
+        async with trio.open_nursery() as nursery:
+            for shard_id in range(shard_count):
+                shard = ShardConnection(self, shard_id, shard_count)
+                self.shards[shard_id] = shard
+                nursery.start_soon(shard.start, url)
 
         # wait for client to stop running
         await self.running.wait()
@@ -99,17 +100,18 @@ class Client(Emitter):
     def login(self, token, bot=True):
         self._boot_up_time = time.time()
         try:
-            self.loop.run_until_complete(self.start(token, bot))
+            trio.run(self.start, token, bot)
         except KeyboardInterrupt:
             pass
-        except Exception as err:
+        except Exception:
             traceback.print_exc()
         finally:
             self.close()
 
     async def on_error(self, error):
-        '''Default error handler for events'''
-        traceback.print_exc()
+        """Default error handler for events"""
+        traceback.print_exc()  # This actually just prints None...
+        # error.__traceback__ can be printed however
 
     async def on_command_error(self, error):
         traceback.print_exc()
@@ -121,17 +123,19 @@ class Client(Emitter):
         context = Context(self, msg)
         await context.invoke()
 
-    def command(self, callback=None,  *, name=None, aliases=[]):
-        if asyncio.iscoroutinefunction(callback):
+    def command(self, callback=None, *, name=None, aliases=None):
+        if aliases is None:
+            aliases = []
+        if inspect.iscoroutinefunction(callback):
             name = name or callback.__name__
             cmd = Command(self, name=name, callback=callback, aliases=aliases)
             self.commands.add(cmd)
         else:
             def wrapper(coro):
-                if not asyncio.iscoroutinefunction(coro):
+                if not inspect.iscoroutinefunction(coro):
                     raise RuntimeWarning(f'Callback is not a coroutine!')
                 cmd = Command(self, name=name or coro.__name__, callback=coro, aliases=aliases)
                 self.commands.add(cmd)
                 return cmd
-            return wrapper
 
+            return wrapper

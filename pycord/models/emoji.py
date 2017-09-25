@@ -1,4 +1,4 @@
-'''
+"""
 MIT License
 
 Copyright (c) 2017 verixx / king1600
@@ -20,15 +20,18 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-'''
+"""
 
 
 from .core import Snowflake, Serializable
 
+
 class Emoji(Snowflake, Serializable):
     __slots__ = ('guild')
 
-    def __init__(self, guild, data={}):
+    def __init__(self, guild, data=None):
+        if data is None:
+            data = {}
         self.guild = guild
         self.from_dict(data)
         self.id = int(data.get('id', 0))

@@ -1,4 +1,4 @@
-'''
+"""
 MIT License
 
 Copyright (c) 2017 verixx / king1600
@@ -20,10 +20,11 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-'''
+"""
 
 
 from ..models.core import Snowflake, Serializable
+
 
 class Message(Snowflake, Serializable):
     __slots__ = (
@@ -31,8 +32,11 @@ class Message(Snowflake, Serializable):
         'edited', 'channel', 'author', 'members'
     )
 
-    def __init__(self, client, data={}):
+    def __init__(self, client, data=None):
+        if data is None:
+            data = {}
         self.client = client
+        self.guild = None
         self.from_dict(data)
 
     def from_dict(self, data):
@@ -45,8 +49,6 @@ class Message(Snowflake, Serializable):
             author_id = int(data['author']['id'])
             self.author = self.client.users.get(author_id)
 
-
-
-    async def reply(self, content : str=None, **kwargs):
+    async def reply(self, content: str=None, **kwargs):
         kwargs['content'] = str(content)
         return await self.client.api.send_message(self.channel, **kwargs)

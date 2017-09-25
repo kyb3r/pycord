@@ -7,5 +7,5 @@ class Converter(ABC):
         pass
 
     @abstractmethod
-    def convert():
+    def convert(self):
         pass

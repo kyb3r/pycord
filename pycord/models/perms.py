@@ -1,4 +1,4 @@
-'''
+"""
 MIT License
 
 Copyright (c) 2017 verixx / king1600
@@ -20,7 +20,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-'''
+"""
 
 
 class Permissions:
@@ -34,12 +34,10 @@ class Permissions:
         return bool((self.value >> index) & 1)
 
     def _set(self, index, value):
-        if value == True:
+        if value:
             self.value |= (1 << index)
-        elif value == False:
-            self.value &= ~(1 << index)
         else:
-            raise TypeError('Value to set for Permissions must be a bool.')
+            self.value &= ~(1 << index)
 
     def handle_overwrite(self, allow, deny):
         self.value = (self.value & ~deny) | allow

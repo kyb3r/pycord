@@ -1,4 +1,4 @@
-'''
+"""
 MIT License
 
 Copyright (c) 2017 verixx / king1600
@@ -20,20 +20,21 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-'''
+"""
 
 import pycord
 import datetime
 
+
 class MyBot(pycord.Client):
-    '''
+    """
     Example of dynamic event registration
     ------------------------------------
     on_{event} methods are automatically called to make event 
     registration easier if you decide to make a subclass
     of `pycord.Client`. Otherwise you can use the `self.on` method
     and pass in a callback to register it for the specified event.
-    '''
+    """
     def __init__(self):
         super().__init__()
         self.on('message', self.message_handler)
@@ -43,6 +44,7 @@ class MyBot(pycord.Client):
 
     async def on_message(self, msg):
         print('This event is called automatically')
+        await self.process_commands(msg)
 
     async def on_ready(self):
         if not hasattr(self, 'uptime'):

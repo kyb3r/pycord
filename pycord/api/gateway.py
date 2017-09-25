@@ -1,4 +1,4 @@
-'''
+"""
 MIT License
 
 Copyright (c) 2017 verixx / king1600
@@ -20,37 +20,38 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-'''
+"""
+
+import platform
+import time
+import traceback
+import zlib
+
+import asyncwebsockets
+import trio
 
 from ..api.events import EventHandler
-from ..utils import get_libname, API
 from ..utils import from_json
+from ..utils import get_libname, API
 from ..utils import json
-import websockets
-import traceback
-import platform
-import asyncio
-import zlib
-import time
 
 
 class ShardConnection:
+    """Represents a websocket connection to a shard."""
 
-    '''Represents a websocket connection to a shard.'''
-
-    DISPATCH        = 0
-    HEARTBEAT       = 1
-    IDENTIFY        = 2
-    PRESENCE        = 3
-    VOICE_STATE     = 4
-    VOICE_PING      = 5
-    RESUME          = 6
-    RECONNECT       = 7
+    DISPATCH = 0
+    HEARTBEAT = 1
+    IDENTIFY = 2
+    PRESENCE = 3
+    VOICE_STATE = 4
+    VOICE_PING = 5
+    RESUME = 6
+    RECONNECT = 7
     REQUEST_MEMBERS = 8
     INVALID_SESSION = 9
-    HELLO           = 10
-    HEARTBEAT_ACK   = 11
-    GUILD_SYNC      = 12
+    HELLO = 10
+    HEARTBEAT_ACK = 11
+    GUILD_SYNC = 12
 
     def __init__(self, client=None, shard_id=None, shard_max=None):
         self.ws = None
@@ -73,28 +74,28 @@ class ShardConnection:
                 'status': 'offline'
             }
             await self.send(self.PRESENCE, offline)
-            await self.ws.close(code, reason)
+            await self.ws.close()
 
     async def send(self, op=DISPATCH, d=None):
         if self.ws is not None:
             data = json.dumps({'op': op, 'd': d})
-            await self.ws.send(data)
+            await self.ws.send_message(data)
 
     async def ping(self, data=None):
         start = time.time()
         if self.ws is not None:
             await (await self.ws.ping(data))
-        return ((time.time() - start) * 1000., data)
+        return (time.time() - start) * 1000., data
 
-    async def heartbeat(self, interval):
-        await asyncio.sleep(interval)
+    async def heartbeat(self, interval, nursery):
+        await trio.sleep(interval)
         if self.ws is not None:
             if self.heartbeat_acked:
                 self.heartbeat_acked = False
                 await self.send(self.HEARTBEAT, self.sequence)
-                self.client.loop.create_task(self.heartbeat(interval))
+                nursery.start_soon(self.heartbeat(interval, nursery))
             else:
-                await self.ws.close(1011, 'zombie connection')
+                await self.ws.close()
 
     async def resume(self):
         """ Send resume packet """
@@ -126,36 +127,37 @@ class ShardConnection:
 
         await self.send(self.IDENTIFY, payload)
 
-    async def read_data(self):
+    async def read_data(self, nursery):
         """ Start reading data from websocket connection """
-        if self.ws is None: return
+        if self.ws is None:
+            return
 
         while True:
             try:
                 # unpack data and save sequence number
-                data = await self.ws.recv()
+                data = (await self.ws.next_message()).data
                 if isinstance(data, bytes):
                     data = zlib.decompress(data, 15, 10490000).decode('utf-8')
                 data = from_json(data)
 
                 # handle collected data
                 await self.client.emit('raw_data', data)
-                await self.handle_data(data)
+                await self.handle_data(data, nursery)
 
             # ignore websocket close exception
-            except websockets.exceptions.ConnectionClosed:
+            except asyncwebsockets.WebsocketClosed:
                 break
 
             # ignore asyncio cancellation exceptions
-            except asyncio.CancelledError:
+            except trio.Cancelled:
                 break
 
             # handle any exceptions
-            except Exception as err:
+            except:
                 traceback.print_exc()
                 break
 
-    async def handle_data(self, data):
+    async def handle_data(self, data, nursery):
         """ handle websocket data """
         # extract message info
         self.sequence = data.get('s') or self.sequence
@@ -172,13 +174,13 @@ class ShardConnection:
         # start session
         elif op == self.HELLO:
             interval = (data['heartbeat_interval'] - 100) / 1000.0
-            self.client.loop.create_task(self.heartbeat(interval))
+            nursery.start_soon(self.heartbeat, interval, nursery)
             await self.identify()
 
         # retry connecting if possible
         elif op == self.INVALID_SESSION:
             if data:
-                await asyncio.sleep(5.0, loop=self.client.loop)
+                await trio.sleep(5.0)
                 await self.ws.close()
             else:
                 self.sequence = None
@@ -194,13 +196,12 @@ class ShardConnection:
     async def start(self, url):
         """ Start long-term connection with gateway """
         self.alive = True
-        url = url[:-1] if url.endswith('/') else url
+        url = url + "/" if not url.endswith('/') else url
         url += API.WS_ENDPOINT
 
         # start connection loop
-        while self.alive:
-            async with websockets.connect(url) as self.ws:
-                await self.read_data()
-                
-
-                
+        print(url)
+        self.ws = await asyncwebsockets.connect_websocket(url)
+        async with trio.open_nursery() as nursery:
+            while self.alive:
+                await self.read_data(nursery)

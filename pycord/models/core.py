@@ -1,4 +1,4 @@
-'''
+"""
 MIT License
 
 Copyright (c) 2017 verixx / king1600
@@ -20,14 +20,15 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-'''
+"""
 
 
 from ..utils import id_to_time
 from abc import ABC, abstractmethod
 
+
 class Snowflake(ABC):
-    ''' Base Discord Object : everything will probably inherit from this '''
+    """ Base Discord Object : everything will probably inherit from this """
     __slots__ = ('id')
 
     @property
@@ -37,8 +38,9 @@ class Snowflake(ABC):
             raise AttributeError("id is not set!")
         return id_to_time(int(_id))
 
+
 class Sendable(ABC):
-    ''' Base class for objects that can send messages '''
+    """ Base class for objects that can send messages """
     __slots__ = ()
 
     @abstractmethod
@@ -51,7 +53,7 @@ class Sendable(ABC):
 
 
 class Serializable(ABC):
-    ''' Anything that can go to and from a dict '''
+    """ Anything that can go to and from a dict """
     __slots__ = ()
 
     def from_dict(self, data):

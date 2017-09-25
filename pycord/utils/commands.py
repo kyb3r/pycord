@@ -1,4 +1,4 @@
-'''
+"""
 MIT License
 
 Copyright (c) 2017 verixx / king1600
@@ -20,12 +20,13 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-'''
+"""
 
 import inspect
 import shlex
-import asyncio
+import trio
 from .converter import Converter
+
 
 class Command:
     def __init__(self, client, **kwargs):
@@ -44,7 +45,6 @@ class Command:
             await self.callback(*args, **kwargs)
         except Exception as e:
             await self.client.emit('command_error', e)
-
 
 
 class Context:
@@ -151,7 +151,7 @@ class Context:
         if inspect.isclass(converter) and issubclass(converter, Converter):
             obj = converter(self, value)
             converter = obj.convert
-        if asyncio.iscoroutinefunction(converter):
+        if inspect.iscoroutinefunction(converter):
             return await converter(self, value)
         else:
             return converter(value)
