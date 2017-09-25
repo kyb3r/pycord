@@ -80,7 +80,7 @@ class Client(Emitter):
         info = await self.api.get(endpoint)
         url = info.get('url')
 
-        # get amouont of shards
+        # get amount of shards
         shard_count = info.get('shards', 1)
         if len(self.shards) < 1:
             self.shards = list(range(shard_count))
