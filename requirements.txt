@@ -1,4 +1,4 @@
 asks
 multio
--e git+https://github.com/python-trio/trio#egg=trio
--e git+https://github.com/SunDwarf/asyncws#egg=asyncwebsockets
+git+https://github.com/python-trio/trio#egg=trio
+git+https://github.com/SunDwarf/asyncws#egg=asyncwebsockets
