@@ -7,7 +7,6 @@ setup(
     description='A Discord API library for Python running on the Trio async library',
     author='verixx',
     author_email='abdurraqeeb53@gmail.com',
-    install_requires=requirements,
     url='https://github.com/verixx/pycord',  # use the URL to the github repo
     download_url='https://github.com/verixx/pycord/archive/v0.3.4-alpha.tar.gz',  # I'll explain this in a second
     keywords=['discord'],  # arbitrary keywords
