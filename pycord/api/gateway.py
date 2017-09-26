@@ -93,7 +93,7 @@ class ShardConnection:
             if self.heartbeat_acked:
                 self.heartbeat_acked = False
                 await self.send(self.HEARTBEAT, self.sequence)
-                nursery.start_soon(self.heartbeat(interval, nursery))
+                nursery.start_soon(self.heartbeat, interval, nursery)
             else:
                 await self.ws.close()
 
@@ -200,7 +200,6 @@ class ShardConnection:
         url += API.WS_ENDPOINT
 
         # start connection loop
-        print(url)
         self.ws = await asyncwebsockets.connect_websocket(url)
         async with trio.open_nursery() as nursery:
             while self.alive:
