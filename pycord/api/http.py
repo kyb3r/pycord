@@ -89,7 +89,7 @@ class HttpClient:
         self.session = asks.Session(headers=headers)
 
     def __del__(self):
-        self.session.close()
+        pass
 
     async def get(self, endpoint, **kwargs):
         """ Helper function for GET request """
