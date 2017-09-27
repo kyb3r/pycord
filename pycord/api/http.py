@@ -28,11 +28,10 @@ from collections import defaultdict
 from urllib.parse import quote
 
 import asks
-import trio
+import multio
 
 from .. import __version__, __github__
-from ..utils import from_json, API
-from ..utils import json
+from ..utils import API, run_later, encoder, decoder
 
 
 class HoldableLock:
@@ -50,7 +49,7 @@ class HoldableLock:
 
     async def __aexit__(self, *args):
         if self.unlock:
-            self.lock.release()
+            await self.lock.release()
 
 
 class GlobalLock:
@@ -73,8 +72,8 @@ class HttpClient:
     def __init__(self):
         self.token = None
         self.retries = 5
-        self.buckets = defaultdict(trio.Lock)
-        self.global_event = trio.Event()
+        self.buckets = defaultdict(multio.Lock)
+        self.global_event = multio.Event()
 
         # set global lock and create user agent
         user_agent = 'DiscordBot ({0} {1}) Python/{2[0]}.{2[1]}'
@@ -118,7 +117,6 @@ class HttpClient:
         bucket = f"{method}.{endpoint}"
         endpoint = API.HTTP_ENDPOINT + endpoint
 
-        # get lock
         lock = self.buckets[bucket]
 
         # create headers
@@ -146,21 +144,21 @@ class HttpClient:
 
         # open http request with retries
         async with HoldableLock(lock) as hold_lock:
-            async with trio.open_nursery() as nursery:
+            async with multio.asynclib.task_manager() as nursery:
                 for tries in range(self.retries):
                     resp = await self.session.request(method, endpoint, headers=headers, data=data, json=_json)
 
                     # get response and header data
                     data = resp.text
                     if 'application/json' in resp.headers['content-type']:
-                        data = from_json(data)
+                        data = decoder(data)
                     remaining = resp.headers.get('X-Ratelimit-Remaining', 0)
 
                     # check if route should be rate limited
                     if remaining == '0' and resp.status_code != 429:
                         hold_lock.hold()
                         delay = int(resp.headers.get('X-Ratelimit-Reset')) - time.time()
-                        nursery.start_soon(lock.release, delay, lock)
+                        multio.asynclib.spawn(nursery, run_later(delay, lock.release()))
 
                     # check if route IS rate limited
                     elif resp.status_code == 429:
@@ -168,7 +166,7 @@ class HttpClient:
 
                             # wait for rate limit delay delay
                             retry_after = data.get('retry-after', 0)
-                            await trio.sleep(retry_after / 1000.0)
+                            await multio.asynclib.sleep(retry_after / 1000.0)
 
                         # retry request
                         continue
@@ -187,7 +185,7 @@ class HttpClient:
 
                     # service is down, wait a bit and retry later
                     elif resp.status_code in (500, 502):
-                        await trio.sleep(1 + tries * 2)
+                        await multio.asynclib.sleep(1 + tries * 2)
                         continue
 
                     # unknown http error

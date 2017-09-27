@@ -24,7 +24,7 @@ SOFTWARE.
 
 import inspect
 import shlex
-import trio
+
 from .converter import Converter
 
 
@@ -155,7 +155,7 @@ class Context:
             return await converter(self, value)
         else:
             return converter(value)
-        
+
     def get_converter(self, param):
         if param.annotation is param.empty:
             return str
@@ -190,7 +190,7 @@ class CommandCollection:
             raise ValueError('A name or alias is already registered')
         self.commands[cmd.name] = cmd
 
-    def get(self, alias, prefix='',fallback=None):
+    def get(self, alias, prefix='', fallback=None):
         try:
             return self.commands[alias]
         except KeyError:
@@ -199,6 +199,3 @@ class CommandCollection:
             if alias in command.aliases:
                 return command
         return fallback
-
-
-

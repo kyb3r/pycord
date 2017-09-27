@@ -28,7 +28,6 @@ import traceback
 
 import asks
 import multio
-import trio
 
 from .api import HttpClient, ShardConnection
 from .models import Channel, Guild, Message, User
@@ -36,23 +35,20 @@ from .utils import Collection
 from .utils import Emitter
 from .utils.commands import Command, CommandCollection, Context
 
-multio.init("trio")
-asks.init("trio")
-
 
 class Client(Emitter):
-    def __init__(self, shard_count=-1, prefixes='py.'):
+    def __init__(self, shard_count=-1, prefixes='py.', message_cache_max=2500):
         super().__init__()
         self.token = ''
         self.is_bot = True
         self._boot_up_time = None
-        self.running = trio.Event()
+        self.running = multio.Event()
         self.api = HttpClient()
         self.shards = [] if shard_count < 1 else list(range(shard_count))
         self.users = Collection(User)
         self.guilds = Collection(Guild)
         self.channels = Collection(Channel)
-        self.messages = Collection(Message, maxlen=2500)
+        self.messages = Collection(Message, maxlen=message_cache_max)
         self.commands = CommandCollection(self)
         self.prefixes = prefixes if isinstance(prefixes, list) else [prefixes]
         self.session = asks.Session()  # public session
@@ -64,10 +60,10 @@ class Client(Emitter):
     async def _close(self):
         for shard in self.shards:
             await shard.close()
-        self.running.set()
+        await self.running.set()
 
     def close(self):
-        trio.run(self._close)
+        multio.run(self._close)
 
     async def start(self, token, bot):
         self.is_bot = bot
@@ -88,11 +84,11 @@ class Client(Emitter):
             shard_count = len(self.shards)
 
         # spawn shard connections
-        async with trio.open_nursery() as nursery:
+        async with multio.asynclib.task_manager() as nursery:
             for shard_id in range(shard_count):
                 shard = ShardConnection(self, shard_id, shard_count)
                 self.shards[shard_id] = shard
-                nursery.start_soon(shard.start, url)
+                await multio.asynclib.spawn(nursery, shard.start, url)
 
         # wait for client to stop running
         await self.running.wait()
@@ -100,11 +96,7 @@ class Client(Emitter):
     def login(self, token, bot=True):
         self._boot_up_time = time.time()
         try:
-            trio.run(self.start, token, bot)
-        except KeyboardInterrupt:
-            pass
-        except Exception:
-            traceback.print_exc()
+            multio.run(self.start, token, bot)
         finally:
             self.close()
 

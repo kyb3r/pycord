@@ -28,12 +28,11 @@ import traceback
 import zlib
 
 import asyncwebsockets
-import trio
+from multio import asynclib
 
 from ..api.events import EventHandler
-from ..utils import from_json
+from ..utils import encoder, decoder
 from ..utils import get_libname, API
-from ..utils import json
 
 
 class ShardConnection:
@@ -78,7 +77,7 @@ class ShardConnection:
 
     async def send(self, op=DISPATCH, d=None):
         if self.ws is not None:
-            data = json.dumps({'op': op, 'd': d})
+            data = encoder({'op': op, 'd': d})
             await self.ws.send_message(data)
 
     async def ping(self, data=None):
@@ -88,12 +87,12 @@ class ShardConnection:
         return (time.time() - start) * 1000., data
 
     async def heartbeat(self, interval, nursery):
-        await trio.sleep(interval)
+        await asynclib.sleep(interval)
         if self.ws is not None:
             if self.heartbeat_acked:
                 self.heartbeat_acked = False
                 await self.send(self.HEARTBEAT, self.sequence)
-                nursery.start_soon(self.heartbeat, interval, nursery)
+                await asynclib.spawn(nursery, self.heartbeat, interval, nursery)
             else:
                 await self.ws.close()
 
@@ -138,7 +137,7 @@ class ShardConnection:
                 data = (await self.ws.next_message()).data
                 if isinstance(data, bytes):
                     data = zlib.decompress(data, 15, 10490000).decode('utf-8')
-                data = from_json(data)
+                data = decoder(data)
 
                 # handle collected data
                 await self.client.emit('raw_data', data)
@@ -149,7 +148,7 @@ class ShardConnection:
                 break
 
             # ignore asyncio cancellation exceptions
-            except trio.Cancelled:
+            except asynclib.Cancelled():
                 break
 
             # handle any exceptions
@@ -174,13 +173,13 @@ class ShardConnection:
         # start session
         elif op == self.HELLO:
             interval = (data['heartbeat_interval'] - 100) / 1000.0
-            nursery.start_soon(self.heartbeat, interval, nursery)
+            await asynclib.spawn(nursery, self.heartbeat, interval, nursery)
             await self.identify()
 
         # retry connecting if possible
         elif op == self.INVALID_SESSION:
             if data:
-                await trio.sleep(5.0)
+                await asynclib.sleep(5.0)
                 await self.ws.close()
             else:
                 self.sequence = None
@@ -201,6 +200,6 @@ class ShardConnection:
 
         # start connection loop
         self.ws = await asyncwebsockets.connect_websocket(url)
-        async with trio.open_nursery() as nursery:
+        async with asynclib.task_manager() as nursery:
             while self.alive:
                 await self.read_data(nursery)

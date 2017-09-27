@@ -29,7 +29,7 @@ from abc import ABC, abstractmethod
 
 class Snowflake(ABC):
     """ Base Discord Object : everything will probably inherit from this """
-    __slots__ = ('id')
+    __slots__ = 'id'
 
     @property
     def created_at(self):

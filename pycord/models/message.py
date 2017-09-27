@@ -24,30 +24,39 @@ SOFTWARE.
 
 
 from ..models.core import Snowflake, Serializable
+from ..utils import parse_time
 
 
 class Message(Snowflake, Serializable):
     __slots__ = (
-        'client', 'guild', 'content', 
-        'edited', 'channel', 'author', 'members'
+        'client', 'guild', 'content',
+        'edited', 'channel', 'author', 'members'#, '__weakref__'
     )
 
     def __init__(self, client, data=None):
-        if data is None:
-            data = {}
         self.client = client
-        self.guild = None
-        self.from_dict(data)
-
-    def from_dict(self, data):
-        self.id = int(data.get('id'))
-        self.content = data.get('content')
-        channel_id = int(data['channel_id'], 0)
-        self.channel = self.client.channels.get(channel_id)
+        self.id = int(data['id'])
+        self.channel_id = int(data['channel_id'], 0)
+        self.channel = self.client.channels.get(self.channel_id)
         self.guild = self.channel.guild
-        if 'author' in data:
-            author_id = int(data['author']['id'])
-            self.author = self.client.users.get(author_id)
+        author_id = int(data['author']['id'])
+        self.author = self.client.users.get(author_id)
+        self.content = data['content']
+        self.timestamp = parse_time(data['timestamp'])
+        self.edited_timestamp = parse_time(data.get('edited_timestamp'))
+        self.tts = data.get("tts", False)
+        self.mention_everyone = data["mention_everyone"]
+        self.mentions = [self.client.users.get(id) for id in data["mentions"]]
+        self.mention_roles = [self.guild._roles[id] for id in data["mentions"]]
+        self.attachments = ()
+        self.embeds = ()
+        self.reactions = data.get("reactions", ())
+        self.nonce = data.get("nonce", 0)
+        self.pinned = data["pinned"]
+        wh_id = data.get("webhook_id")
+        if wh_id is not None:
+            self.webhook_id = wh_id
+        self.type = data.get("type", 0)
 
     async def reply(self, content: str=None, **kwargs):
         kwargs['content'] = str(content)

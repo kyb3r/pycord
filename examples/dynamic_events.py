@@ -22,8 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import pycord
 import datetime
+
+import pycord
 
 
 class MyBot(pycord.Client):
@@ -35,6 +36,7 @@ class MyBot(pycord.Client):
     of `pycord.Client`. Otherwise you can use the `self.on` method
     and pass in a callback to register it for the specified event.
     """
+
     def __init__(self):
         super().__init__()
         self.on('message', self.message_handler)
@@ -53,5 +55,6 @@ class MyBot(pycord.Client):
 
 
 if __name__ == '__main__':
+    pycord.init("trio")
     client = MyBot()
     client.login('token')

@@ -24,18 +24,13 @@ SOFTWARE.
 
 import os
 import re
-import asyncio
 from base64 import b64encode
-from datetime import datetime
-from collections import deque
-from .emitter import Emitter
-from .collection import Collection
+from datetime import datetime, timedelta
 
-# try get fastest json parser
-try: 
-    import ujson as json
-except ImportError:
-    import json
+from multio import asynclib
+
+from .collection import Collection
+from .emitter import Emitter
 
 
 # get the library name by folder
@@ -43,11 +38,31 @@ def get_libname():
     return __file__.split(os.sep)[-3]
 
 
+########## PARSING ###########
+try:
+    import earl
+
+    encoding = "erl"
+    encoder = earl.pack
+    decoder = earl.unpack
+except ImportError:
+    # try get fastest json parser
+    encoding = "json"
+    try:
+        import ujson as json
+    except ImportError:
+        import json
+
+    encoder = json.dumps
+    decoder = json.loads
+
+
 # api constants
 class API:
     HOST = "https://discordapp.com"
     HTTP_ENDPOINT = f"{HOST}/api/v7"
-    WS_ENDPOINT = "?v=6&encoding=json"
+    WS_ENDPOINT = f"?v=6&encoding={encoding}"
+
 
 #################### Time Functions ####################
 
@@ -60,6 +75,13 @@ def parse_time(timestamp):
     return None
 
 
+def gt(dt_str):
+    dt, _, us = dt_str.partition(".")
+    dt = datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")
+    us = int(us.rstrip("Z"), 10)
+    return dt + timedelta(microseconds=us)
+
+
 def id_to_time(id):
     return datetime.utcfromtimestamp(
         ((int(id) >> 22) + DISCORD_EPOCH) / 1000)
@@ -68,10 +90,10 @@ def id_to_time(id):
 def time_to_id(timeobj, high=False):
     secs = (timeobj - type(timeobj)(1970, 1, 1).total_seconds())
     discord_ms = int(secs * 1000 - DISCORD_EPOCH)
-    return (discord_ms << 22) + (2*22-1 if high else 0)
+    return (discord_ms << 22) + (2 * 22 - 1 if high else 0)
+
 
 ####################### Data formatting #######################
-
 
 def image_type(data):
     if data.startswith(b'\x89\x50\x4E\x47\x0D\x0A\x1A\x0A'):
@@ -88,12 +110,6 @@ def image_to_string(data):
     return 'data:{0},base64,{1}'.format(mime, data)
 
 
-def from_json(data):
-    return json.loads(data)
-
-
-def pretty_json(data):
-  try:
-      return json.dumps(data, indent=4)
-  except:
-      return json.dumps(data)
+async def run_later(time, task):
+    await asynclib.sleep(time)
+    return await task

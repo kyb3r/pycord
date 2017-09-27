@@ -1,4 +1,5 @@
 asks
 multio
 https://github.com/python-trio/trio/archive/master.zip
-git+https://github.com/SunDwarf/asyncwebsockets.git#egg=asyncwebsockets
+asyncwebsockets
+Earl-ETF

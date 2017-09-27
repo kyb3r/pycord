@@ -4,7 +4,7 @@ setup(
     name='py-cord',
     packages=['pycord', 'pycord.utils', 'pycord.models', 'pycord.api'],  # this must be the same as the name above
     version='v0.3.4-alpha',
-    description='A Discord API library for Python running on the Trio async library',
+    description='A Discord API library for Python running on the Trio and Curio async libraries',
     author='verixx',
     author_email='abdurraqeeb53@gmail.com',
     url='https://github.com/verixx/pycord',  # use the URL to the github repo

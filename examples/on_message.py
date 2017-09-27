@@ -29,6 +29,7 @@ Example showing off how beautiful
 the design of this api wrapper is ;)
 """
 
+pycord.init("trio")
 client = pycord.Client()
 
 
