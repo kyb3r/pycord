@@ -63,7 +63,7 @@ class Collection:
     def __getitem__(self, key):
         """ Array index searching by index """
         found = self.find(lambda i: getattr(i, self.index, None) == key)
-        return found[0] if found is not None else None
+        return found[0] if found else None
 
     def __setitem__(self, key, value):
         """ Array setting by key """
