@@ -1,7 +1,7 @@
 from distutils.core import setup
   
 setup(
-    name='py-cord',
+    name='pycord',
     packages=['pycord', 'pycord.utils', 'pycord.models', 'pycord.api'],  # this must be the same as the name above
     version='v0.3.4-alpha',
     description='A Discord API library for Python running on the Trio and Curio async libraries',
