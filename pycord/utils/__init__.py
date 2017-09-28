@@ -38,7 +38,7 @@ def get_libname():
     return __file__.split(os.sep)[-3]
 
 
-########## PARSING ###########
+# PARSING
 try:
     import earl
 
@@ -64,7 +64,7 @@ class API:
     WS_ENDPOINT = f"?v=6&encoding={encoding}"
 
 
-#################### Time Functions ####################
+# Time Functions
 
 DISCORD_EPOCH = 1420070400000
 
@@ -90,10 +90,10 @@ def id_to_time(id):
 def time_to_id(timeobj, high=False):
     secs = (timeobj - type(timeobj)(1970, 1, 1).total_seconds())
     discord_ms = int(secs * 1000 - DISCORD_EPOCH)
-    return (discord_ms << 22) + (2 * 22 - 1 if high else 0)
+    return (discord_ms << 22) + (2 ** 22 - 1 if high else 0)
 
 
-####################### Data formatting #######################
+#  Data formatting
 
 def image_type(data):
     if data.startswith(b'\x89\x50\x4E\x47\x0D\x0A\x1A\x0A'):
