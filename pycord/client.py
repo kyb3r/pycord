@@ -87,11 +87,12 @@ class Client(Emitter):
         the internal session the HttpClient uses.
         
     '''
-    def __init__(self, shard_count=-1, prefixes='py.', message_cache_max=2500, lib='trio', bot=True):
+
+    def __init__(self, shard_count=-1, prefixes='py.', message_cache_max=2500, lib='trio'):
         super().__init__()
         self.async_init(lib)
         self.token = ''
-        self.is_bot = bot
+        self.is_bot = True
         self._boot_up_time = None
         self.running = multio.Event()
         self.api = HttpClient(self)
@@ -120,8 +121,9 @@ class Client(Emitter):
     def close(self):
         multio.run(self._close)
 
-    async def start(self, token):
+    async def start(self, token, bot):
         self.token = self.api.token = token
+        self.is_bot = bot
 
         # get gateway info
         endpoint = '/gateway'
@@ -147,10 +149,10 @@ class Client(Emitter):
         # wait for client to stop running
         await self.running.wait()
 
-    def login(self, token):
+    def login(self, token, bot=True):
         self._boot_up_time = time.time()
         try:
-            multio.run(self.start, token)
+            multio.run(self.start, token, bot)
         finally:
             self.close()
 

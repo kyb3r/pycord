@@ -57,8 +57,8 @@ class EventHandler:
             self.client.guilds.add(Guild(self.client, data))
 
         if not self.emitted_ready:
-            if len([None for g in self.client.guilds if g.unavailable]) == 0:
-                bootup = time.time()-self.client._boot_up_time
+            if sum(1 for g in self.client.guilds if g.unavailable) == 0:
+                bootup = time.time() - self.client._boot_up_time
                 await self.client.emit('ready', bootup)
 
     async def handle_member_join(self, data):

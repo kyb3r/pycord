@@ -152,7 +152,7 @@ class ShardConnection:
                 break
 
             # handle any exceptions
-            except Exception as e:
+            except:
                 traceback.print_exc()
                 break
 

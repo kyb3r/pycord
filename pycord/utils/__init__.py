@@ -84,7 +84,8 @@ def gt(dt_str):
 
 def id_to_time(id):
     return datetime.utcfromtimestamp(
-        ((int(id) >> 22) + DISCORD_EPOCH) / 1000)
+        ((int(id) >> 22) + DISCORD_EPOCH) / 1000
+    )
 
 
 def time_to_id(timeobj, high=False):
