@@ -148,11 +148,11 @@ class ShardConnection:
                 break
 
             # ignore asyncio cancellation exceptions
-            except asynclib.Cancelled():
+            except asynclib.Cancelled:
                 break
 
             # handle any exceptions
-            except:
+            except Exception as e:
                 traceback.print_exc()
                 break
 
