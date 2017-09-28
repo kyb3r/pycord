@@ -2,7 +2,7 @@
         <p> <img src="https://i.imgur.com/SbFk45Y.png"/> </p>
         <p><i><b>A discord api wrapper in progress :)</b></i></p>
 	<p> 
-		<a href="https://discord.gg/pmQSbAd"><img src="https://discordapp.com/api/guilds/345787308282478592/embed.png" alt="" /></a>
+		<a href="https://discord.gg/W9GQRB2"><img src="https://discordapp.com/api/guilds/352144117658288129/embed.png" alt="" /></a>
 		<img src="https://img.shields.io/badge/python-3.6-brightgreen.svg" alt="python 3.6" /></a>
 	</p>
 </div> 
@@ -11,7 +11,7 @@
 pycord is a discord api wrapper currently in development. Its easy to use, asynchronous (built on trio) and object oriented. It features a super simple commands framework that makes it easy to write discord boys.
 
 ## Installation
-You can easily install the pre-release of this library by doing `pip3 install py-cord`
+You can easily install the pre-release of this library by doing `pip3 install pycord`
 
 ## Examples
 
@@ -21,7 +21,8 @@ import pycord
 client = pycord.Client()
 
 @client.on('ready')
-async def on_ready():
+async def on_ready(time):
+    print(f'Booted up in {time:.2f} seconds')
     print(f'Logged in as: {client.user}')
     print(f'User ID: {client.user.id}')
     print(f'Is Bot: {client.user.bot}')
@@ -42,16 +43,16 @@ import pycord
 
 client = pycord.Client()
 
-@client.on('ready')
-async def ready():
+@client.cmd('ready')
+async def ready(time):
    print('Bot online!')
 
-@client.command()
+@client.cmd('ping')
 async def ping(ctx): # the message that called the command
     await ctx.send('Pong!') # yes, it does look like d.py :/ 
 			    # going for a clean style for commands anyways
 
-@client.command() 
+@client.cmd('add') 
 async def add(ctx, *numbers: int):
     await ctx.send(sum(numbers))
 
