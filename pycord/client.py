@@ -37,6 +37,56 @@ from .utils.commands import Command, CommandCollection, Context
 
 
 class Client(Emitter):
+    '''
+    Represents a client that connects to Discord.
+
+    This class is the core of the library, with all functionality
+    revolving around it.
+
+    Parameters
+    ----------
+    shard_count : Optional[int]
+        The amount of shards to use, this will be automatically set 
+        using the bot ws gateway endpoint if not provided.
+    lib : Optional[str]
+        The async library to use, supports either 'trio' or 'curio',
+        defaults to 'trio' if not provided.
+    bot : Optional[bool]
+        Specifies whether or not the client is a bot account or a 
+        user account. Defaults to True if not provided.
+    message_cache_max : Optional[int]
+        The maximum number of messages to store in the internal deque 
+        cache. Defaults to 2500 if not provided.
+    prefixes : optional[str, list]
+        The prefixes to use for commands. Can either be a list or a 
+        single prefix. Defaults to 'py.' if not provided.
+
+    Attributes
+    ----------
+    token : str
+        The bot token provided by the login method.
+    is_bot : bool
+        Specifies whether or not the client is a bot.
+    shards : list
+        Stores the client's ShardConnections (ws) indexed by id
+    users : collection
+        Stores all user objects that the client can see
+    guilds : collection
+        Stores all the guild objects the client is a part of currently.
+    channels : collection
+        Stores all the channel objects that the client can see.
+    messages : collection
+        A deque cache that stores the last x amount of messages 
+        specified by the ``message_cache_max`` parameter.
+    commands : collection
+        A special collection that stores all registered commands 
+    prefixes : list
+        Contains a list of prefixes that a command may be used with
+    session
+        An asks.Session that is for public use, this is different from 
+        the internal session the HttpClient uses.
+        
+    '''
     def __init__(self, shard_count=-1, prefixes='py.', message_cache_max=2500, lib='trio', bot=True):
         super().__init__()
         self.async_init(lib)
