@@ -21,7 +21,8 @@ import pycord
 client = pycord.Client()
 
 @client.on('ready')
-async def on_ready():
+async def on_ready(time):
+    print(f'Booted up in {time:.2f} seconds')
     print(f'Logged in as: {client.user}')
     print(f'User ID: {client.user.id}')
     print(f'Is Bot: {client.user.bot}')
@@ -42,16 +43,16 @@ import pycord
 
 client = pycord.Client()
 
-@client.on('ready')
-async def ready():
+@client.cmd('ready')
+async def ready(time):
    print('Bot online!')
 
-@client.command()
+@client.cmd('ping')
 async def ping(ctx): # the message that called the command
     await ctx.send('Pong!') # yes, it does look like d.py :/ 
 			    # going for a clean style for commands anyways
 
-@client.command() 
+@client.cmd('add') 
 async def add(ctx, *numbers: int):
     await ctx.send(sum(numbers))
 
