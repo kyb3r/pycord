@@ -37,13 +37,14 @@ from .utils.commands import Command, CommandCollection, Context
 
 
 class Client(Emitter):
-    def __init__(self, shard_count=-1, prefixes='py.', message_cache_max=2500):
+    def __init__(self, shard_count=-1, prefixes='py.', message_cache_max=2500, lib='trio', bot=True):
         super().__init__()
+        self.async_init(lib)
         self.token = ''
-        self.is_bot = True
+        self.is_bot = bot
         self._boot_up_time = None
         self.running = multio.Event()
-        self.api = HttpClient()
+        self.api = HttpClient(self)
         self.shards = [] if shard_count < 1 else list(range(shard_count))
         self.users = Collection(User)
         self.guilds = Collection(Guild)
@@ -57,6 +58,10 @@ class Client(Emitter):
         if self.is_bot:
             self.close()
 
+    def async_init(self, lib):
+        multio.init(lib)
+        asks.init(lib)
+
     async def _close(self):
         for shard in self.shards:
             await shard.close()
@@ -65,8 +70,7 @@ class Client(Emitter):
     def close(self):
         multio.run(self._close)
 
-    async def start(self, token, bot):
-        self.is_bot = bot
+    async def start(self, token):
         self.token = self.api.token = token
 
         # get gateway info
@@ -93,10 +97,10 @@ class Client(Emitter):
         # wait for client to stop running
         await self.running.wait()
 
-    def login(self, token, bot=True):
+    def login(self, token):
         self._boot_up_time = time.time()
         try:
-            multio.run(self.start, token, bot)
+            multio.run(self.start, token)
         finally:
             self.close()
 
@@ -115,7 +119,7 @@ class Client(Emitter):
         context = Context(self, msg)
         await context.invoke()
 
-    def command(self, callback=None, *, name=None, aliases=None):
+    def cmd(self, name=None, *, callback=None, aliases=None):
         if aliases is None:
             aliases = []
         if inspect.iscoroutinefunction(callback):
