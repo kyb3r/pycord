@@ -108,6 +108,9 @@ class Context:
     async def invoke(self):
         if self.command is None:
             return
+        if not self.client.is_bot:
+            if self.message.author.id != self.client.user.id:
+                return
         args, kwargs = await self.get_arguments()
         callback = self.command.callback
         try:
