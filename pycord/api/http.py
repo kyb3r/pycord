@@ -69,8 +69,9 @@ class GlobalLock:
 
 
 class HttpClient:
-    def __init__(self):
-        self.token = None
+    def __init__(self, client):
+        self.client = client
+        self.token = client.token
         self.retries = 5
         self.buckets = defaultdict(multio.Lock)
         self.global_event = multio.Event()
@@ -80,8 +81,10 @@ class HttpClient:
         self.user_agent = user_agent.format(
             __github__, __version__, sys.version_info)
 
+        token = f'Bot {self.token}' if self.client.is_bot else self.token
+
         headers = {
-            "Authorization": f'Bot {self.token}',
+            "Authorization": token,
             "User-Agent": self.user_agent
         }
 
@@ -119,10 +122,11 @@ class HttpClient:
 
         lock = self.buckets[bucket]
 
+        token = f'Bot {self.token}' if self.client.is_bot else self.token
         # create headers
         headers = {'User-Agent': self.user_agent}
         if self.token is not None:
-            headers['Authorization'] = f'Bot {self.token}'
+            headers['Authorization'] = token
         if kwargs.get('reason'):
             headers['X-Audit-Log-Reason'] = quote(kwargs.get('reason'), safe='/ ')
 
@@ -130,7 +134,7 @@ class HttpClient:
         data = kwargs.get('data')
         if data is not None:
             if isinstance(data, dict):
-                data = json.dumps(data)
+                data = encoder(data)
             if isinstance(data, str):
                 data = data.encode('utf-8')
 
@@ -225,8 +229,8 @@ class HttpClient:
         }
         return self.post('/users/@me/channels', data=payload)
 
-    def delete_message(self, channel, message_id, *, reason=None):
-        route = f'/channels/{channel.id}/messages/{message_id}'
+    def delete_message(self, channel, message, *, reason=None):
+        route = f'/channels/{channel.id}/messages/{message.id}'
         return self.delete(route, reason=reason)
 
     def delete_messages(self, channel, messages, *, reason=None):
