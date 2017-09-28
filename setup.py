@@ -1,5 +1,10 @@
 from distutils.core import setup
-  
+import sys, os
+
+if sys.argv[-1] == 'publish':
+    os.system('python setup.py sdist upload')
+    sys.exit()
+
 setup(
     name='pycord',
     packages=['pycord', 'pycord.utils', 'pycord.models', 'pycord.api'],  # this must be the same as the name above
