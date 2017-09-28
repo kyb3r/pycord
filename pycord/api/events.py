@@ -25,7 +25,7 @@ SOFTWARE.
 from ..models import ClientUser, Guild, Message
 from ..utils import json
 from collections import deque
-
+import time
 
 class EventHandler:
     def __init__(self, shard):
@@ -40,7 +40,8 @@ class EventHandler:
             self.client.guilds.add(Guild(self.client, guild))
 
         if not self.client.is_bot and not self.emitted_ready:
-            await self.client.emit('ready')
+            bootup = time.time()-self.client._boot_up_time
+            await self.client.emit('ready', bootup)
             self.emitted_ready = True
 
     async def handle_message_create(self, data):
@@ -57,7 +58,8 @@ class EventHandler:
 
         if not self.emitted_ready:
             if len([None for g in self.client.guilds if g.unavailable]) == 0:
-                await self.client.emit('ready')
+                bootup = time.time()-self.client._boot_up_time
+                await self.client.emit('ready', bootup)
 
     async def handle_member_join(self, data):
         pass
