@@ -28,10 +28,6 @@ from ..utils import parse_time
 
 
 class Message(Snowflake, Serializable):
-    __slots__ = (
-        'client', 'guild', 'content',
-        'edited', 'channel', 'author', 'members'#, '__weakref__'
-    )
 
     def __init__(self, client, data=None):
         self.client = client
@@ -58,6 +54,13 @@ class Message(Snowflake, Serializable):
             self.webhook_id = wh_id
         self.type = data.get("type", 0)
 
-    async def reply(self, content: str=None, **kwargs):
+    def reply(self, content: str=None, **kwargs):
         kwargs['content'] = str(content)
-        return await self.client.api.send_message(self.channel, **kwargs)
+        return self.client.api.send_message(self.channel, **kwargs)
+
+    def delete(self):
+        return self.client.api.delete_message(self.channel, self)
+
+
+
+
