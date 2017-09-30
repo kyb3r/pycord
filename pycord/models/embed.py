@@ -43,6 +43,9 @@ class Embed(Serializable):
         self.description = kwargs.get('description')
         self.timestamp = kwargs.get('timestamp')
         self.fields = []
+        
+    def __repr__(self):
+        return f'Embed object,\ntitle={self.title},\ncolor={self.color},\nurl={self.url},\nauthor={self.author},\ndescription={description},\nfields={self.fields},\nimage={self.image},\nthumbnail={self.thumbnail},\nfooter={self.footer},\ntimestamp={self.timestamp}'
 
     @classmethod
     def from_dict(cls, data):
