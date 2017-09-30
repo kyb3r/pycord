@@ -99,7 +99,7 @@ class Client(Emitter):
         self.channels = Collection(Channel)
         self.messages = Collection(Message, maxlen=message_cache_max)
         self.commands = CommandCollection(self)
-        self.webhooks = Collection(Webhook, index='name')
+        self.webhooks = Collection(Webhook, indexor='name')
         self.prefixes = prefixes if isinstance(prefixes, list) else [prefixes]
         
     def __del__(self):
