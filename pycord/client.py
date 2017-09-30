@@ -29,12 +29,11 @@ import traceback
 import asks
 import multio
 
-from .api import HttpClient, ShardConnection
+from .api import HttpClient, ShardConnection, Webhook
 from .models import Channel, Guild, Message, User
 from .utils import Collection
 from .utils import Emitter
 from .utils.commands import Command, CommandCollection, Context
-
 
 class Client(Emitter):
     '''
@@ -51,9 +50,6 @@ class Client(Emitter):
     lib : Optional[str]
         The async library to use, supports either 'trio' or 'curio',
         defaults to 'trio' if not provided.
-    bot : Optional[bool]
-        Specifies whether or not the client is a bot account or a 
-        user account. Defaults to True if not provided.
     message_cache_max : Optional[int]
         The maximum number of messages to store in the internal deque 
         cache. Defaults to 2500 if not provided.
@@ -96,15 +92,16 @@ class Client(Emitter):
         self._boot_up_time = None
         self.running = multio.Event()
         self.api = HttpClient(self)
+        self.session = asks.Session()  # public session
         self.shards = [] if shard_count < 1 else list(range(shard_count))
         self.users = Collection(User)
         self.guilds = Collection(Guild)
         self.channels = Collection(Channel)
         self.messages = Collection(Message, maxlen=message_cache_max)
         self.commands = CommandCollection(self)
+        self.webhooks = Collection(Webhook, index='name')
         self.prefixes = prefixes if isinstance(prefixes, list) else [prefixes]
-        self.session = asks.Session()  # public session
-
+        
     def __del__(self):
         if self.is_bot:
             self.close()
@@ -187,3 +184,13 @@ class Client(Emitter):
                 return cmd
 
             return wrapper
+
+    def register_webhook(self, name, url, **fields):
+        '''Register a webhook to the client.
+
+        Example:
+            client.register_webhook('test', url)
+            await client.webhooks.get('test').send('hello', embeds=em)
+        '''
+        hook = Webhook(url=url, name=name, **fields)
+        self.webhooks.add(hook)
