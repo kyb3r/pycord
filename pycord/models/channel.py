@@ -49,9 +49,10 @@ class TextChannel(Channel, Sendable, Serializable):
     def __str__(self):
         return self.name
 
-    # TODO: add permission overwrites
+    def __repr__(self):
+        return "<pycord.models.TextChannel name='{0.name}' id={0.id}>".format(self)
 
-    async def send(self, content:str=None, **kwargs):
+    async def send(self, content=None, **kwargs):
         api = self.guild.client.api
         kwargs['content'] = str(content)
         return await api.send_message(self, **kwargs)
