@@ -45,7 +45,13 @@ class Embed(Serializable):
         self.fields = []
         
     def __repr__(self):
-        return f'Embed object,\ntitle={self.title},\ncolor={self.color},\nurl={self.url},\nauthor={self.author},\ndescription={description},\nfields={self.fields},\nimage={self.image},\nthumbnail={self.thumbnail},\nfooter={self.footer},\ntimestamp={self.timestamp}'
+        fmt = ''
+        for attr in self.__slots__:
+            val = getattr(self, attr, None)
+            if val:
+                fmt += f'{attr}={val}'
+                break
+        return f'<pycord.models.Embed {fmt}>'
 
     @classmethod
     def from_dict(cls, data):
