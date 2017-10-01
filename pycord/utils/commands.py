@@ -35,6 +35,7 @@ class Command:
         self.name = kwargs.get('name')
         self.aliases = [self.name] + kwargs.get('aliases', [])
         self.help_doc = inspect.getdoc(self.callback)
+        self.check = inspect.signature(self.callback).return_annotation
 
     @property
     def signature(self):
@@ -113,6 +114,15 @@ class Context:
                 return
         args, kwargs = await self.get_arguments()
         callback = self.command.callback
+        check = self.command.check
+        if check is not inspect._empty:
+            if inspect.iscoroutinefunction(check):
+                should_call = await check(self)
+            else:
+                should_call = check(self)
+                
+        if not should_call:
+            return
         try:
             await callback(self, *args, **kwargs)
         except Exception as e:
