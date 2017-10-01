@@ -8,10 +8,10 @@
 </div> 
 
 ## About
-Pycord is a Discord API wrapper currently in development. It's easy to use, asynchronous (built on trio) and object oriented. It features a super simple commands framework that makes it easy to write Discord bots.
+Pycord is a Discord API wrapper currently in development. It's easy to use, asynchronous using multio to support trio/curio and object oriented. It features a super simple commands framework that makes it easy to write Discord bots.
 
 ## Installation
-You can easily install the pre-release of this library by doing `pip3 install pycord`
+You can easily install the pre-release of this library by doing `pip3 install py-cord` (not the latest)
 
 ## Examples
 
