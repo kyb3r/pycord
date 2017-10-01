@@ -2,7 +2,7 @@
         <p> <img src="https://i.imgur.com/SbFk45Y.png"/> </p>
         <p><i><b>A Discord API wrapper in progress :)</b></i></p>
 	<p> 
-		<a href="https://discord.gg/m3n8RV"><img src="https://discordapp.com/api/guilds/363717307660369921/embed.png" alt="" /></a>
+		<a href="https://discord.gg/Q8kuctn"><img src="https://discordapp.com/api/guilds/363717307660369921/embed.png" alt="" /></a>
 		<img src="https://img.shields.io/badge/python-3.6-brightgreen.svg" alt="python 3.6" /></a>
 	</p>
 </div> 
