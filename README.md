@@ -1,5 +1,5 @@
 <div align="center">
-        <p> <img src="https://i.imgur.com/SbFk45Y.png"/> </p>
+        <p> <img src="https://i.imgur.com/Dsm9t0r.png"/> </p>
         <p><i><b>A Discord API wrapper in progress :)</b></i></p>
 	<p> 
 		<a href="https://discord.gg/Q8kuctn"><img src="https://discordapp.com/api/guilds/363717307660369921/embed.png" alt="" /></a>
