@@ -43,6 +43,15 @@ class Embed(Serializable):
         self.description = kwargs.get('description')
         self.timestamp = kwargs.get('timestamp')
         self.fields = []
+        
+    def __repr__(self):
+        fmt = ''
+        for attr in self.__slots__:
+            val = getattr(self, attr, None)
+            if val:
+                fmt += f'{attr}={val}'
+                break
+        return f'<pycord.models.Embed {fmt}>'
 
     @classmethod
     def from_dict(cls, data):
