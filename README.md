@@ -56,6 +56,13 @@ async def ping(ctx): # the message that called the command
 async def add(ctx, *numbers: int):
     await ctx.send(sum(numbers))
 
+def is_owner(ctx): # command checks
+    return ctx.author.id == 1234567890
+
+@client.cmd('eval')
+async def _eval(ctx, *, code) -> is_owner:
+    pass
+
 client.login('token')
 ```
 
