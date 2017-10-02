@@ -9,7 +9,7 @@ Welcome to Pycord's Documentation
 
 .. image:: /images/pycord.png
 
-Pycord is a Discord API wrapper currently in development. It's easy to use, object oriented and asynchronous, using multio to support both trio and curio async libraries. It features an extremely simple commands framework inspired by discord.py that makes writing Discord bots a breeze. Here you can talk about Pycord development and ask for support.
+Pycord is a Discord API wrapper currently in development. It's easy to use, object oriented and asynchronous, using multio to support both trio and curio async libraries. It features an extremely simple commands framework inspired by discord.py that makes writing Discord bots a breeze.
 
 Documentation Contents
 -----------------------
