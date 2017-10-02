@@ -1,5 +1,5 @@
 <div align="center">
-        <p> <img src="https://i.imgur.com/SbFk45Y.png"/> </p>
+        <p> <img src="https://i.imgur.com/tDy4yb4.png"/> </p>
         <p><i><b>A Discord API wrapper in progress :)</b></i></p>
 	<p> 
 		<a href="https://discord.gg/Q8kuctn"><img src="https://discordapp.com/api/guilds/363717307660369921/embed.png" alt="" /></a>
@@ -8,7 +8,7 @@
 </div> 
 
 ## About
-Pycord is a Discord API wrapper currently in development. It's easy to use, asynchronous, using multio to support trio/curio and object oriented. It features a super simple commands framework that makes it easy to write Discord bots.
+Pycord is a Discord API wrapper currently in development. It's easy to use, object oriented and asynchronous, using multio to support both trio and curio async libraries. It features a super simple commands framework inspired by discord.py's one that makes writing Discord bots a breeze.
 
 ## Installation
 You can easily install the pre-release of this library by doing `pip3 install py-cord` (not the latest)
@@ -55,6 +55,13 @@ async def ping(ctx): # the message that called the command
 @client.cmd('add') 
 async def add(ctx, *numbers: int):
     await ctx.send(sum(numbers))
+
+def is_owner(ctx): # command checks
+    return ctx.author.id == 1234567890
+
+@client.cmd('eval')
+async def _eval(ctx, *, code) -> is_owner:
+    pass
 
 client.login('token')
 ```
