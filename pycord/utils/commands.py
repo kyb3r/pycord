@@ -120,7 +120,7 @@ class Context:
                 should_call = await check(self)
             else:
                 should_call = check(self)
-                
+
         if not should_call:
             return
         try:
@@ -167,7 +167,7 @@ class Context:
         if inspect.iscoroutinefunction(converter):
             return await converter(self, value)
         else:
-            return converter(value)
+            return converter(self, value)
 
     def get_converter(self, param):
         if param.annotation is param.empty:
