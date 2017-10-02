@@ -24,17 +24,23 @@ SOFTWARE.
 
 
 from ..models.core import Snowflake, Serializable
+from ..models.embed import Embed
 from ..utils import parse_time
 
 
 class Message(Snowflake, Serializable):
+    __slots__ = ("guild", "content", "tts", "channel", "author"
+                 "mention_everyone", "mentions", "mention_roles",
+                 "attachments", "embeds", "channel_id", "timestamp",
+                 "edited_timestamp", "pinned", "nonce", "webhook_id",
+                 "type")
 
     def __init__(self, client, data=None):
         self.client = client
         self.id = int(data['id'])
         self.channel_id = int(data['channel_id'], 0)
         self.channel = self.client.channels.get(self.channel_id)
-        self.guild = self.channel.guild
+        self.guild = None if self.channel is None else self.channel.guild
         author_id = int(data['author']['id'])
         self.author = self.client.users.get(author_id)
         self.content = data['content']
@@ -43,9 +49,9 @@ class Message(Snowflake, Serializable):
         self.tts = data.get("tts", False)
         self.mention_everyone = data["mention_everyone"]
         self.mentions = [self.client.users.get(id) for id in data["mentions"]]
-        self.mention_roles = [self.guild._roles[id] for id in data["mentions"]]
-        self.attachments = ()
-        self.embeds = ()
+        self.mention_roles = [self.guild._roles[id] for id in data["mention_roles"]]
+        self.attachments = data["attachments"]
+        self.embeds = [Embed.from_dict(embed) for embed in data["embeds"]]
         self.reactions = data.get("reactions", ())
         self.nonce = data.get("nonce", 0)
         self.pinned = data["pinned"]

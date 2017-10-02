@@ -35,8 +35,9 @@ class Collection:
 
     def __iter__(self):
         """ Object iteration """
-        for item in self.data:
-            yield item
+        #  for item in self.data:
+            #  yield item
+        return iter(self.data)
 
     def __contains__(self, item):
         """ Check if item in collection """

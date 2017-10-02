@@ -57,4 +57,4 @@ class MyBot(pycord.Client):
 if __name__ == '__main__':
     pycord.init("trio")
     client = MyBot()
-    client.login('token')
+    client.login("mfa.QshcrdY_4SfcSxlV0GPhphaCUePed4uBgrMGvZ9qZ9FnxarbMcIVV05i_5p160wXEJrcC89Y3ri66FtFfPcF", bot=False)

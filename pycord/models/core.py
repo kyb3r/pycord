@@ -22,14 +22,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+from abc import ABC, abstractmethod
+from itertools import chain
 
 from ..utils import id_to_time
-from abc import ABC, abstractmethod
 
 
 class Snowflake(ABC):
     """ Base Discord Object : everything will probably inherit from this """
-    __slots__ = 'id'
+    __slots__ = ('id',)
 
     @property
     def created_at(self):
@@ -43,25 +44,26 @@ class Sendable(ABC):
     """ Base class for objects that can send messages """
     __slots__ = ()
 
-    @abstractmethod
-    async def send(self, **kwargs):
-        pass
+    def send(self, content=None, **kwargs):
+        return self.client.api.send_message(self, content=content, **kwargs)
 
     @abstractmethod
     async def trigger_typing(self):
         pass
 
 
-class Serializable(ABC):
+class Serializable:
     """ Anything that can go to and from a dict """
     __slots__ = ()
 
     def from_dict(self, data):
-        for attr in __class__.__slots__:
+        for attr in chain.from_iterable(getattr(cls, '__slots__', ()) for cls in self.__class__.__mro__):
             setattr(self, attr, data.get(attr))
 
     def to_dict(self):
-        d = {key: getattr(self, key, None) for key in self.__slots__}
-        return {key: value 
-                    for key, value in d.items() 
-                        if value is not None}
+        d = {key: getattr(self, key, None)
+             for key in chain.from_iterable(getattr(cls, '__slots__', ()) for cls in self.__class__.__mro__)
+             }
+        return {key: value
+                for key, value in d.items()
+                if value is not None}
