@@ -57,4 +57,4 @@ class MyBot(pycord.Client):
 if __name__ == '__main__':
     pycord.init("trio")
     client = MyBot()
-    client.login("token")
+    client.login('token')
