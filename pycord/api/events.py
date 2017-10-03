@@ -38,6 +38,7 @@ class EventHandler:
 
     async def handle_ready(self, data):
         self.client.user = ClientUser(self.client, data)
+
         for guild in data['guilds']:
             await self.handle_guild_create(guild)
 
@@ -59,11 +60,11 @@ class EventHandler:
         else:
             self.client.guilds.add(Guild(self.client, data))
 
-        if not self.ready_event.is_set():
-            if not sum(1 for g in self.client.guilds if g.unavailable):
-                bootup = time.time() - self.client._boot_up_time
-                await self.ready_event.set()
-                await self.client.emit('ready', bootup)
+        #if not self.ready_event.is_set():
+        #    if not sum(1 for g in self.client.guilds if g.unavailable):
+        #        bootup = time.time() - self.client._boot_up_time
+        #        await self.ready_event.set()
+        #        await self.client.emit('ready', bootup)
 
     async def handle_member_join(self, data):
         pass

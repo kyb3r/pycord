@@ -40,9 +40,9 @@ class Message(Snowflake, Serializable):
         self.id = int(data['id'])
         self.channel_id = int(data['channel_id'], 0)
         self.channel = self.client.channels.get(self.channel_id)
-        self.guild = None if self.channel is None else self.channel.guild
         author_id = int(data['author']['id'])
         self.author = self.client.users.get(author_id)
+        self.guild = self.channel.guild
         self.content = data['content']
         self.timestamp = parse_time(data['timestamp'])
         self.edited_timestamp = parse_time(data.get('edited_timestamp'))

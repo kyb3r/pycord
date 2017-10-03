@@ -49,7 +49,7 @@ class Guild(Snowflake, Serializable):
         self._emojis = Collection(Emoji)
         self._members = Collection(Member)
         self._channels = Collection(Channel)
-        self.id = None
+        self.id = int(data.get("id"), 0)
         self.name = None
         self.icon = None
         self.region = None
@@ -86,9 +86,8 @@ class Guild(Snowflake, Serializable):
                 channel = VoiceChannel(self, channel_data)
             else:
                 channel = CategoryChannel(self, channel_data)
-            if channel is not None:
-                self.client.channels.add(channel)
-                self._channels.add(channel)
+            self.client.channels.add(channel)
+            self._channels.add(channel)
 
         for role in data.get('roles', []):
             self._roles.add(Role(self, role))

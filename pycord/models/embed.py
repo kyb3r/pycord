@@ -33,6 +33,7 @@ class Embed(Serializable):
         'color', 'title', 'url', 'author',
         'description', 'fields', 'image',
         'thumbnail', 'footer', 'timestamp',
+        'type', 'video'
         )
     
     def __init__(self, **kwargs):
@@ -57,7 +58,7 @@ class Embed(Serializable):
     def from_dict(cls, data):
         self = cls.__new__(cls)
         for attr in data:
-            if attr == 'timestamp':  #special case
+            if attr == 'timestamp':  # special case
                 setattr(self, attr, parse_time(data[attr]))
             else:
                 setattr(self, attr, data[attr])

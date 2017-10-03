@@ -82,7 +82,7 @@ class Collection:
             raise ValueError(f"{item} is not instance of {self.instance}")
         index = getattr(item, self.index, None)
         if index == None:
-            raise AttributeError(f"{self.index} of {item} is invalid")
+            raise AttributeError(f"{self.index} of {repr(item)} is invalid")
         self[index] = item
 
     def remove(self, item):

@@ -44,8 +44,8 @@ class TextChannel(Sendable, Channel):
         self.guild = guild
         self.client = self.guild.client
         self.parent = self.client.channels.get(int(data.get("parent_id", 0) or 0))
-        self.id = int(data.get('id', 0))
         self.from_dict(data)
+        self.id = int(data.get('id', 0))
 
     def __str__(self):
         return self.name
@@ -79,6 +79,7 @@ class CategoryChannel(Channel):
         self.client = self.guild.client
         self.parent = self.client.channels.get(int(data.get("parent_id", 0) or 0))
         self.from_dict(data)
+        self.id = int(data.get('id', 0))
 
 
 class DMGroupChannel(Channel, Sendable):
