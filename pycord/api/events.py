@@ -67,7 +67,7 @@ class EventHandler:
             self.client.guilds.add(Guild(self.client, data))
 
         #if not self.ready_event.is_set():
-        #    if not sum(1 for g in self.client.guilds if g.unavailable):
+        #    if not sum(g.unavailable for g in self.client.guilds):
         #        bootup = time.time() - self.client._boot_up_time
         #        await self.ready_event.set()
         #        await self.client.emit('ready', bootup)

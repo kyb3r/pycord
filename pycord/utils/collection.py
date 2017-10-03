@@ -25,27 +25,13 @@ SOFTWARE.
 from collections import deque
 
 
-class Collection:
+class Collection(dict):
     __slots__ = ('data', 'index', 'instance')
 
     def __init__(self, instance=dict, indexor="id", maxlen=None):
-        self.data = deque(maxlen=maxlen)
+        dict.__init__(self)
         self.index = indexor
         self.instance = instance
-
-    def __iter__(self):
-        """ Object iteration """
-        #  for item in self.data:
-            #  yield item
-        return iter(self.data)
-
-    def __contains__(self, item):
-        """ Check if item in collection """
-        return item in self.data
-
-    def __len__(self):
-        """ Get the amount of elements """
-        return len(self.data)
 
     def __add__(self, other):
         """ Add a collection to self """
@@ -61,53 +47,35 @@ class Collection:
         """ += add a collection to self """
         self.__add__(other)
 
-    def __getitem__(self, key):
-        """ Array index searching by index """
-        found = self.find(lambda i: getattr(i, self.index, None) == key)
-        return found[0] if found else None
-
     def __setitem__(self, key, value):
         """ Array setting by key """
         if not isinstance(value, self.instance):
             raise ValueError(f"{value} is not instance of {self.instance}")
-        for pos, item in enumerate(self.__iter__()):
-            if getattr(item, self.index, None) == key:
-                self.data[pos] = value
-                return
-        self.data.append(value)
+        dict.__setitem__(self, key, value)
 
     def add(self, item):
         """ Add an item to the collection """
         if not isinstance(item, self.instance):
             raise ValueError(f"{item} is not instance of {self.instance}")
         index = getattr(item, self.index, None)
-        if index == None:
+        if index is None:
             raise AttributeError(f"{self.index} of {repr(item)} is invalid")
         self[index] = item
 
     def remove(self, item):
         """ Remove item from collection """
         if isinstance(item, self.instance):
-            if item in self.data:
-                self.data.remove(item)
+            if getattr(item, self.index, None) is not None:
+                del self[getattr(item, self.index)]
         else:
-            item = self[item]
-            if item in self.data:
-                self.data.remove(item)
+            if item in self:
+                del self[item]
 
     def remove_if(self, **attrs):
         """ Remove items if meet attribute conditions """
-        for i in range(len(self.data) - 1, -1, -1):
-            if self.has_attrs(self.data[i], **attrs):
-                del self.data[i]
-
-    def first(self):
-        """ Get the first item in the object """
-        return self.data[0]
-
-    def last(self):
-        """ Get the last item in the object """
-        return self.data[-1]
+        for key, value in reversed(self.items()):
+            if self.has_attrs(value, **attrs):
+                del self[key]
 
     def has_attrs(self, obj, **attrs):
         """ Check if object has attrs """
@@ -124,12 +92,6 @@ class Collection:
             if getattr(item, self.index, None) == key:
                 return True
         return False
-
-    def get(self, index):
-        """ Find one item in collection by indexor """
-        cond = lambda i: getattr(i, self.index, None) == index
-        results = self.find(cond)
-        return results[0] if len(results) > 0 else None
 
     def find(self, condition):
         """ Find all objects which meet callable condition """
