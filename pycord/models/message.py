@@ -24,6 +24,7 @@ SOFTWARE.
 
 
 from ..models.core import Snowflake, Serializable
+from ..models.channel import GUILD_CHANNELS
 from ..models.embed import Embed
 from ..utils import parse_time
 
@@ -42,14 +43,17 @@ class Message(Snowflake, Serializable):
         self.channel = self.client.channels.get(self.channel_id)
         author_id = int(data['author']['id'])
         self.author = self.client.users.get(author_id)
-        self.guild = self.channel.guild
+        self.guild = self.channel.guild if self.channel.type in GUILD_CHANNELS else None
         self.content = data['content']
         self.timestamp = parse_time(data['timestamp'])
         self.edited_timestamp = parse_time(data.get('edited_timestamp'))
         self.tts = data.get("tts", False)
         self.mention_everyone = data["mention_everyone"]
         self.mentions = [self.client.users.get(id) for id in data["mentions"]]
-        self.mention_roles = [self.guild._roles[id] for id in data["mention_roles"]]
+        if self.guild:
+            self.mention_roles = [self.guild._roles[id] for id in data["mention_roles"]]
+        else:
+            self.mention_roles = None
         self.attachments = data["attachments"]
         self.embeds = [Embed.from_dict(embed) for embed in data["embeds"]]
         self.reactions = data.get("reactions", ())

@@ -58,7 +58,10 @@ class Serializable:
 
     def from_dict(self, data):
         for attr in chain.from_iterable(getattr(cls, '__slots__', ()) for cls in self.__class__.__mro__):
-            setattr(self, attr, data.get(attr))
+            if attr.endswith("_id") or attr == "id":
+                setattr(self, attr, int(data.get(attr, 0)))
+            else:
+                setattr(self, attr, data.get(attr))
 
     def to_dict(self):
         d = {key: getattr(self, key, None)

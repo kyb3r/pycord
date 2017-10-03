@@ -33,7 +33,7 @@ class Embed(Serializable):
         'color', 'title', 'url', 'author',
         'description', 'fields', 'image',
         'thumbnail', 'footer', 'timestamp',
-        'type', 'video'
+        'type', 'video', 'provider'
         )
     
     def __init__(self, **kwargs):
