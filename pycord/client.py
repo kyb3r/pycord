@@ -25,18 +25,20 @@ SOFTWARE.
 import inspect
 import time
 import traceback
+from collections import deque
 
 import asks
 import multio
 
 from .api import HttpClient, ShardConnection, Webhook
-from .models import Channel, Guild, Message, User
+from .models import Channel, Guild, User
 from .utils import Collection
 from .utils import Emitter
 from .utils.commands import Command, CommandCollection, Context
 
+
 class Client(Emitter):
-    '''
+    """
     Represents a client that connects to Discord.
 
     This class is the core of the library, with all functionality
@@ -45,16 +47,16 @@ class Client(Emitter):
     Parameters
     ----------
     shard_count : Optional[int]
-        The amount of shards to use, this will be automatically set 
+        The amount of shards to use, this will be automatically set
         using the bot ws gateway endpoint if not provided.
     lib : Optional[str]
         The async library to use, supports either 'trio' or 'curio',
         defaults to 'trio' if not provided.
     message_cache_max : Optional[int]
-        The maximum number of messages to store in the internal deque 
+        The maximum number of messages to store in the internal deque
         cache. Defaults to 2500 if not provided.
     prefixes : optional[str, list]
-        The prefixes to use for commands. Can either be a list or a 
+        The prefixes to use for commands. Can either be a list or a
         single prefix. Defaults to 'py.' if not provided.
 
     Attributes
@@ -72,17 +74,17 @@ class Client(Emitter):
     channels : collection
         Stores all the channel objects that the client can see.
     messages : collection
-        A deque cache that stores the last x amount of messages 
+        A deque cache that stores the last x amount of messages
         specified by the ``message_cache_max`` parameter.
     commands : collection
-        A special collection that stores all registered commands 
+        A special collection that stores all registered commands
     prefixes : list
         Contains a list of prefixes that a command may be used with
     session
-        An asks.Session that is for public use, this is different from 
+        An asks.Session that is for public use, this is different from
         the internal session the HttpClient uses.
-        
-    '''
+
+    """
 
     def __init__(self, shard_count=-1, prefixes='py.', message_cache_max=2500, lib='trio'):
         super().__init__()
@@ -97,11 +99,11 @@ class Client(Emitter):
         self.users = Collection(User)
         self.guilds = Collection(Guild)
         self.channels = Collection(Channel)
-        self.messages = Collection(Message, maxlen=message_cache_max)
+        self.messages = deque(maxlen=message_cache_max)
         self.commands = CommandCollection(self)
         self.webhooks = Collection(Webhook, indexor='name')
         self.prefixes = prefixes if isinstance(prefixes, list) else [prefixes]
-        
+
     def __del__(self):
         if self.is_bot:
             self.close()

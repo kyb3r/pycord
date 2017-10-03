@@ -120,7 +120,7 @@ class Context:
                 should_call = await check(self)
             else:
                 should_call = check(self)
-                
+
         if not should_call:
             return
         try:
