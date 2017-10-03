@@ -24,47 +24,82 @@ SOFTWARE.
 
 from ..models.core import Snowflake, Sendable, Serializable
 
+TEXTCHANNEL = 0
+DMCHANNEL = 1
+VOICECHANNEL = 2
+GROUPDMCHANNEL = 3
+CATEGORYCHANNEL = 4
 
-class ChannelType:
-    Text = 0
-    Dm = 1
-    Voice = 2
-    GroupDm = 3
-    Category = 4
-
-
-class Channel(Snowflake):
-    Type = ChannelType
+GUILD_CHANNELS = (TEXTCHANNEL, VOICECHANNEL, CATEGORYCHANNEL)
+DM_CHANNELS = (GROUPDMCHANNEL, DMCHANNEL)
 
 
-class TextChannel(Channel, Sendable, Serializable):
-  
-    __slots__ = ('name', 'position', 'guild', 'client')
+class Channel(Snowflake, Serializable):
+    __slots__ = ('name', 'position',
+                 'guild', 'type',
+                 'permission_overwrites')
+
+    def trigger_typing(self):
+        return self.client.http.send_typing(self)
+
+
+class TextChannel(Sendable, Channel):
+    __slots__ = ("topic", "parent")
 
     def __init__(self, guild, data):
         self.guild = guild
+        self.client = self.guild.client
+        self.parent = self.client.channels.get(int(data.get("parent_id", 0) or 0))
         self.from_dict(data)
-        self.id = int(data.get('id', 0))
 
     def __str__(self):
         return self.name
 
     def __repr__(self):
-        return "<pycord.models.TextChannel name='{0.name}' id={0.id}>".format(self)
-
-    async def send(self, content=None, **kwargs):
-        api = self.guild.client.api
-        kwargs['content'] = str(content)
-        return await api.send_message(self, **kwargs)
+        return "<TextChannel name='{0.name}' id={0.id}>".format(self)
 
     async def trigger_typing(self):
         pass
 
 
-class VoiceChannel(Channel, Serializable):
-    __slots__ = ('name', 'position', 'guild', 'client')
+class VoiceChannel(Channel):
+    __slots__ = ('bitrate', 'user_limit', 'parent')
 
     def __init__(self, guild, data):
         self.guild = guild
+        self.client = self.guild.client
+        self.parent = self.client.channels.get(int(data.get("parent_id", 0) or 0))
         self.from_dict(data)
-        self.id = int(data.get('id', 0))
+
+    def __repr__(self):
+        return "<VoiceChannel name='{0.name}' id={0.id} bitrate={0.bitrate} limit={0.user_limit}>".format(self)
+
+
+class CategoryChannel(Channel):
+    __slots__ = ('name', 'position', 'guild')
+
+    def __init__(self, guild, data):
+        self.guild = guild
+        self.client = self.guild.client
+        self.parent = self.client.channels.get(int(data.get("parent_id", 0) or 0))
+        self.from_dict(data)
+
+
+class DMGroupChannel(Channel, Sendable):
+    __slots__ = ('recipients', 'icon', 'owner')
+
+    def __init__(self, client, data):
+        self.client = client
+        self.owner = self.client.users.get(int(data.get("owner_id", 0)))
+        self.name = None
+        self.from_dict(data)
+        self.recipients = [self.client.users.get(int(user["id"])) for user in data.get("recipients", ())]
+
+
+class DMChannel(Channel, Sendable):
+    def __init__(self, client, data):
+        self.client = client
+        self.parent = self.client.channels.get(int(data.get("parent_id", 0) or 0))
+        self.from_dict(data)
+
+

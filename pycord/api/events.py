@@ -22,29 +22,39 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from ..models import ClientUser, Guild, Message
-from ..utils import json
-from collections import deque
 import time
+
+from multio import Event
+
+from ..models import ClientUser, Guild, Message, DMChannel, DMGroupChannel, DMCHANNEL, GROUPDMCHANNEL
+
 
 class EventHandler:
     def __init__(self, shard):
         self.shard = shard
         self.client = shard.client
         self.api = self.client.api
-        self.emitted_ready = False
+        self.ready_event = Event()
 
     async def handle_ready(self, data):
         self.client.user = ClientUser(self.client, data)
-        for guild in data['guilds']:
-            self.client.guilds.add(Guild(self.client, guild))
 
-        if not self.client.is_bot and not self.emitted_ready:
-            bootup = time.time()-self.client._boot_up_time
+        for guild in data['guilds']:
+            await self.handle_guild_create(guild)
+
+        for channel in data["private_channels"]:
+            if channel["type"] == DMCHANNEL:
+                self.client.channels.add(DMChannel(self.client, data))
+            elif channel["type"] == GROUPDMCHANNEL:
+                self.client.channels.add(DMGroupChannel(self.client, data))
+
+        if not self.ready_event.is_set():
+            bootup = time.time() - self.client._boot_up_time
             await self.client.emit('ready', bootup)
-            self.emitted_ready = True
+            await self.ready_event.set()
 
     async def handle_message_create(self, data):
+        await self.ready_event.wait()
         message = Message(self.client, data)
         self.client.messages.add(message)
         await self.client.emit('message', message)
@@ -56,11 +66,11 @@ class EventHandler:
         else:
             self.client.guilds.add(Guild(self.client, data))
 
-        if not self.emitted_ready:
-            if sum(1 for g in self.client.guilds if g.unavailable) == 0:
-                bootup = time.time() - self.client._boot_up_time
-                await self.client.emit('ready', bootup)
+        #if not self.ready_event.is_set():
+        #    if not sum(g.unavailable for g in self.client.guilds):
+        #        bootup = time.time() - self.client._boot_up_time
+        #        await self.ready_event.set()
+        #        await self.client.emit('ready', bootup)
 
     async def handle_member_join(self, data):
         pass
-

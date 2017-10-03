@@ -48,7 +48,7 @@ class MyBot(pycord.Client):
         print('This event is called automatically')
         await self.process_commands(msg)
 
-    async def on_ready(self):
+    async def on_ready(self, _bootup):
         if not hasattr(self, 'uptime'):
             self.uptime = datetime.datetime.utcnow()
         print('This event is called automatically')

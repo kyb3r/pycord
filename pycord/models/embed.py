@@ -30,9 +30,10 @@ from .core import Serializable
 class Embed(Serializable):
     """Class that formats an embed"""
     __slots__ = (
-        'color','title','url','author',
-        'description','fields','image',
-        'thumbnail','footer','timestamp',
+        'color', 'title', 'url', 'author',
+        'description', 'fields', 'image',
+        'thumbnail', 'footer', 'timestamp',
+        'type', 'video', 'provider'
         )
     
     def __init__(self, **kwargs):
@@ -49,15 +50,15 @@ class Embed(Serializable):
         for attr in self.__slots__:
             val = getattr(self, attr, None)
             if val:
-                fmt += f'{attr}={val}'
+                fmt += f' {attr}={val}'
                 break
-        return f'<pycord.models.Embed {fmt}>'
+        return f'<Embed{fmt}>'
 
     @classmethod
     def from_dict(cls, data):
         self = cls.__new__(cls)
         for attr in data:
-            if attr == 'timestamp': #special case
+            if attr == 'timestamp':  # special case
                 setattr(self, attr, parse_time(data[attr]))
             else:
                 setattr(self, attr, data[attr])
