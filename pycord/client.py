@@ -103,6 +103,7 @@ class Client(Emitter):
         self.commands = CommandCollection(self)
         self.webhooks = Collection(Webhook, indexor='name')
         self.prefixes = prefixes if isinstance(prefixes, list) else [prefixes]
+        self._nonces = dict()
 
     def __del__(self):
         if self.is_bot:
@@ -111,6 +112,11 @@ class Client(Emitter):
     def async_init(self, lib):
         multio.init(lib)
         asks.init(lib)
+
+    def wait_for_nonce(self, nonce):
+        event = multio.Event()
+        self._nonces[nonce] = event
+        return event
 
     async def _close(self):
         for shard in self.shards:
