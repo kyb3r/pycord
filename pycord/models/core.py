@@ -47,12 +47,6 @@ class Sendable(ABC):
     def send(self, content=None, **kwargs):
         return self.client.api.send_message(self, content=content, **kwargs)
 
-    async def fsend(self, content=None, **kwargs):
-        try:
-            return await self.send(content, **kwargs)
-        except:
-            return None
-
     @abstractmethod
     async def trigger_typing(self):
         pass

@@ -31,7 +31,7 @@ import asks
 import multio
 
 from .. import __version__, __github__
-from ..utils import API, run_later, encoder, decoder, generate_nonce
+from ..utils import API, run_later, encoder, decoder
 
 
 class HoldableLock:
@@ -199,20 +199,17 @@ class HttpClient:
         # retries have been exhausted
         raise Exception(f"Failed HTTP Request: {resp.status_code} {method} {endpoint}")
 
-    async def send_message(self, channel, **kwargs):
+    def send_message(self, channel, **kwargs):
         """Send a message to a channel."""
         route = f'/channels/{channel.id}/messages'
-        nonce = generate_nonce()
 
         payload = {
             'content': kwargs.get('content'),
             'embed': kwargs.get('embed'),
-            'tts': kwargs.get('tts', False),
-            'nonce': nonce,
+            'tts': kwargs.get('tts', False)
         }
 
-        await self.post(route, data=payload)
-        await self.client.wait_for_nonce(nonce)
+        return self.post(route, data=payload)
 
     def send_typing(self, channel):
         route = f'/channels/{channel.id}/typing'

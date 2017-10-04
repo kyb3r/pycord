@@ -114,10 +114,3 @@ def image_to_string(data):
 async def run_later(time, task):
     await asynclib.sleep(time)
     return await task
-
-
-import uuid
-
-
-def generate_nonce():
-    return uuid.uuid1().hex
