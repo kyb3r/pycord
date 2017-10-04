@@ -56,7 +56,9 @@ class EventHandler:
     async def handle_message_create(self, data):
         await self.ready_event.wait()
         message = Message(self.client, data)
-        self.client.messages.add(message)
+        self.client.messages.append(message)
+        if message.nonce in self.client._nonces:
+            self.client._nonces.pop(message.nonce).set_result(message)
         await self.client.emit('message', message)
 
     async def handle_guild_create(self, data):

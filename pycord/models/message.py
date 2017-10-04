@@ -49,7 +49,7 @@ class Message(Snowflake, Serializable):
         self.edited_timestamp = parse_time(data.get('edited_timestamp'))
         self.tts = data.get("tts", False)
         self.mention_everyone = data["mention_everyone"]
-        self.mentions = [self.client.users.get(id) for id in data["mentions"]]
+        self.mentions = [self.client.users.get(id["id"]) for id in data["mentions"]]
         if self.guild:
             self.mention_roles = [self.guild._roles[id] for id in data["mention_roles"]]
         else:
