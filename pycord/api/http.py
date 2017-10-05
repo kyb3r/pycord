@@ -31,7 +31,7 @@ import asks
 import multio
 
 from .. import __version__, __github__
-from ..utils import API, run_later, encoder, decoder, generate_nonce
+from ..utils import API, run_later, encoder, decoder, id_now
 
 
 class HoldableLock:
@@ -162,7 +162,7 @@ class HttpClient:
                     if remaining == '0' and resp.status_code != 429:
                         hold_lock.hold()
                         delay = int(resp.headers.get('X-Ratelimit-Reset')) - time.time()
-                        multio.asynclib.spawn(nursery, run_later(delay, lock.release()))
+                        await multio.asynclib.spawn(nursery, run_later, delay, lock.release())
 
                     # check if route IS rate limited
                     elif resp.status_code == 429:
@@ -202,7 +202,7 @@ class HttpClient:
     async def send_message(self, channel, **kwargs):
         """Send a message to a channel."""
         route = '/channels/{.id}/messages'.format(channel)
-        nonce = generate_nonce()
+        nonce = id_now()
 
         payload = {
             'content': kwargs.get('content'),
@@ -213,6 +213,7 @@ class HttpClient:
 
         await self.post(route, data=payload)
         await self.client.wait_for_nonce(nonce)
+        print("done waiting!")
 
     def send_typing(self, channel):
         route = '/channels/{.id}/typing'.format(channel)

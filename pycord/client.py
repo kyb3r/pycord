@@ -115,8 +115,8 @@ class Client(Emitter):
 
     def wait_for_nonce(self, nonce):
         event = multio.Event()
-        self._nonces[nonce] = event
-        return event
+        self._nonces[str(nonce)] = event
+        return event.wait()
 
     async def _close(self):
         for shard in self.shards:

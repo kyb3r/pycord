@@ -190,7 +190,7 @@ class ShardConnection:
         elif op == self.DISPATCH:
             handle = 'handle_{}'.format(event.lower())
             if hasattr(self.handler, handle):
-                await getattr(self.handler, handle)(data)
+                await asynclib.spawn(nursery, getattr(self.handler, handle), data)
 
     async def start(self, url):
         """ Start long-term connection with gateway """

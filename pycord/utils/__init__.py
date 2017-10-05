@@ -24,6 +24,7 @@ SOFTWARE.
 
 import os
 import re
+import time
 from base64 import b64encode
 from datetime import datetime, timedelta
 
@@ -61,7 +62,7 @@ except ImportError:
 class API:
     HOST = "https://discordapp.com"
     HTTP_ENDPOINT = "{}/api/v7".format(HOST)
-    WS_ENDPOINT = "?v=6&encoding={}".format(encoding)
+    WS_ENDPOINT = "?v=7&encoding={}".format(encoding)
 
 
 # Time Functions
@@ -91,7 +92,13 @@ def id_to_time(id):
 def time_to_id(timeobj, high=False):
     secs = (timeobj - type(timeobj)(1970, 1, 1).total_seconds())
     discord_ms = int(secs * 1000 - DISCORD_EPOCH)
-    return (discord_ms << 22) + (2 ** 22 - 1 if high else 0)
+    return (discord_ms << 22) + ((1 << 22) - 1 if high else 0)
+
+
+def id_now():
+    secs = time.time()
+    discord_ms = int(secs * 1000 - DISCORD_EPOCH)
+    return discord_ms << 22
 
 
 #  Data formatting
@@ -114,10 +121,3 @@ def image_to_string(data):
 async def run_later(time, task):
     await asynclib.sleep(time)
     return await task
-
-
-import uuid
-
-
-def generate_nonce():
-    return uuid.uuid1().hex

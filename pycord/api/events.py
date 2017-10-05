@@ -54,7 +54,8 @@ class EventHandler:
             await self.ready_event.set()
 
     async def handle_message_create(self, data):
-        await self.ready_event.wait()
+        if not self.ready_event.is_set():
+            await self.ready_event.wait()
         message = Message(self.client, data)
         self.client.messages.append(message)
         if message.nonce in self.client._nonces:
