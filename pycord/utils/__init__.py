@@ -60,8 +60,8 @@ except ImportError:
 # api constants
 class API:
     HOST = "https://discordapp.com"
-    HTTP_ENDPOINT = f"{HOST}/api/v7"
-    WS_ENDPOINT = f"?v=6&encoding={encoding}"
+    HTTP_ENDPOINT = "{}/api/v7".format(HOST)
+    WS_ENDPOINT = "?v=6&encoding={}".format(encoding)
 
 
 # Time Functions

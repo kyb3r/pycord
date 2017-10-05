@@ -57,6 +57,6 @@ class Role(Snowflake, Serializable):
 
     @property
     def mention(self):
-        return f'<@&{self.id}>'
+        return '<@&{.id}>'.format(self)
 
 #  TODO: implement other attributes

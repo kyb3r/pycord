@@ -48,16 +48,16 @@ class Collection(dict):
     def __setitem__(self, key, value):
         """ Array setting by key """
         if not isinstance(value, self.instance):
-            raise ValueError(f"{value} is not instance of {self.instance}")
+            raise ValueError("{} is not instance of {.instance}".format(value, self))
         dict.__setitem__(self, key, value)
 
     def add(self, item):
         """ Add an item to the collection """
         if not isinstance(item, self.instance):
-            raise ValueError(f"{item} is not instance of {self.instance}")
+            raise ValueError("{} is not instance of {.instance}".format(item, self))
         index = getattr(item, self.index, None)
         if index is None:
-            raise AttributeError(f"{self.index} of {repr(item)} is invalid")
+            raise AttributeError("{.index} of {} is invalid".format(self, repr(item)))
         self[index] = item
 
     def remove(self, item):

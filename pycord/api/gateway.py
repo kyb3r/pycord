@@ -188,7 +188,7 @@ class ShardConnection:
 
         # handle gateway events
         elif op == self.DISPATCH:
-            handle = f'handle_{event.lower()}'
+            handle = 'handle_{}'.format(event.lower())
             if hasattr(self.handler, handle):
                 await getattr(self.handler, handle)(data)
 

@@ -54,7 +54,7 @@ class User(Snowflake, Sendable, Serializable):
 
     @property
     def mention(self):
-        return f'<@{self.id}>'
+        return '<@{.id}>'.format(self)
 
     async def send(self, **kwargs):
         pass
@@ -70,6 +70,7 @@ class ClientUser(User):
     )
 
     def __init__(self, client, data):
+        super().__init__(client, data)
         self.from_dict(data)
 
     def from_dict(self, data):

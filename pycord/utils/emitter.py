@@ -39,13 +39,13 @@ class Emitter(ABC):
         else:
             def wrapper(coro):
                 if not inspect.iscoroutinefunction(coro):
-                    raise RuntimeWarning(f'Callback is not a coroutine!')
+                    raise RuntimeWarning('Callback is not a coroutine!')
                 self._events[event].append(coro)
                 return coro
             return wrapper
 
     async def emit(self, event, *args, **kwargs):
-        on_event = f'on_{event}'
+        on_event = 'on_{}'.format(event)
         try:
             if hasattr(self, on_event):
                 await getattr(self, on_event)(*args, **kwargs)

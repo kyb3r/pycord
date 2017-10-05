@@ -39,9 +39,6 @@ class Channel(Snowflake, Serializable):
                  'guild', 'type',
                  'permission_overwrites')
 
-    def trigger_typing(self):
-        return self.client.http.send_typing(self)
-
 
 class TextChannel(Sendable, Channel):
     __slots__ = ("topic", "parent")
@@ -58,8 +55,8 @@ class TextChannel(Sendable, Channel):
     def __repr__(self):
         return "<TextChannel name='{0.name}' id={0.id}>".format(self)
 
-    async def trigger_typing(self):
-        pass
+    def trigger_typing(self):
+        return self.client.http.send_typing(self)
 
 
 class VoiceChannel(Channel):
@@ -95,6 +92,9 @@ class DMGroupChannel(Channel, Sendable):
         self.from_dict(data)
         self.recipients = [self.client.users.get(int(user["id"])) for user in data.get("recipients", ())]
 
+    def trigger_typing(self):
+        return self.client.http.send_typing(self)
+
 
 class DMChannel(Channel, Sendable):
     def __init__(self, client, data):
@@ -102,4 +102,5 @@ class DMChannel(Channel, Sendable):
         self.parent = self.client.channels.get(int(data.get("parent_id", 0) or 0))
         self.from_dict(data)
 
-
+    def trigger_typing(self):
+        return self.client.http.send_typing(self)
