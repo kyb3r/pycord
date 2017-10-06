@@ -43,6 +43,13 @@ class Message(Snowflake, Serializable):
         author_id = int(data['author']['id'])
         self.author = self.client.users.get(author_id)
         self.guild = self.channel.guild
+        wh_id = data.get("webhook_id")
+        if wh_id is not None:
+            self.webhook_id = wh_id
+        self.type = data.get("type", 0)
+        self.from_dict(data)
+
+    def from_dict(self, data):
         self.content = data['content']
         self.timestamp = parse_time(data['timestamp'])
         self.edited_timestamp = parse_time(data.get('edited_timestamp'))
@@ -55,11 +62,8 @@ class Message(Snowflake, Serializable):
         self.reactions = data.get("reactions", ())
         self.nonce = data.get("nonce", 0)
         self.pinned = data["pinned"]
-        wh_id = data.get("webhook_id")
-        if wh_id is not None:
-            self.webhook_id = wh_id
-        self.type = data.get("type", 0)
 
+        
     def reply(self, content: str=None, **kwargs):
         kwargs['content'] = str(content)
         return self.client.api.send_message(self.channel, **kwargs)
