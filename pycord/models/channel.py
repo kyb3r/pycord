@@ -30,11 +30,17 @@ VOICECHANNEL = 2
 GROUPDMCHANNEL = 3
 CATEGORYCHANNEL = 4
 
+GUILD_CHANNELS = (TEXTCHANNEL, VOICECHANNEL, CATEGORYCHANNEL)
+DM_CHANNELS = (GROUPDMCHANNEL, DMCHANNEL)
+
 
 class Channel(Snowflake, Serializable):
     __slots__ = ('name', 'position',
                  'guild', 'type',
                  'permission_overwrites')
+
+    def trigger_typing(self):
+        return self.client.http.send_typing(self)
 
 
 class TextChannel(Sendable, Channel):
@@ -45,7 +51,6 @@ class TextChannel(Sendable, Channel):
         self.client = self.guild.client
         self.parent = self.client.channels.get(int(data.get("parent_id", 0) or 0))
         self.from_dict(data)
-        self.id = int(data.get('id', 0))
 
     def __str__(self):
         return self.name
@@ -65,7 +70,6 @@ class VoiceChannel(Channel):
         self.client = self.guild.client
         self.parent = self.client.channels.get(int(data.get("parent_id", 0) or 0))
         self.from_dict(data)
-        self.id = int(data.get('id', 0))
 
     def __repr__(self):
         return "<VoiceChannel name='{0.name}' id={0.id} bitrate={0.bitrate} limit={0.user_limit}>".format(self)
@@ -79,7 +83,6 @@ class CategoryChannel(Channel):
         self.client = self.guild.client
         self.parent = self.client.channels.get(int(data.get("parent_id", 0) or 0))
         self.from_dict(data)
-        self.id = int(data.get('id', 0))
 
 
 class DMGroupChannel(Channel, Sendable):
@@ -94,4 +97,9 @@ class DMGroupChannel(Channel, Sendable):
 
 
 class DMChannel(Channel, Sendable):
-    pass
+    def __init__(self, client, data):
+        self.client = client
+        self.parent = self.client.channels.get(int(data.get("parent_id", 0) or 0))
+        self.from_dict(data)
+
+

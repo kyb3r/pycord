@@ -22,18 +22,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-
 from ..models.core import Snowflake, Sendable, Serializable
 from ..models.role import Role
 from ..utils import Collection
 
 
 class User(Snowflake, Sendable, Serializable):
-
     __slots__ = (
-        'username', 'avatar','id','avatar',
+        'username', 'avatar', 'id', 'avatar',
         'discriminator', 'bot', 'verified'
-        )
+    )
 
     def __init__(self, client, data=None):
         if data is None:
@@ -66,11 +64,10 @@ class User(Snowflake, Sendable, Serializable):
 
 
 class ClientUser(User):
-
     __slots__ = (
-        'email', 'mfa_enabled','username', 'avatar',
-        'id','avatar','discriminator', 'bot', 'verified'
-        )
+        'email', 'mfa_enabled', 'username', 'avatar',
+        'id', 'avatar', 'discriminator', 'bot', 'verified'
+    )
 
     def __init__(self, client, data):
         self.from_dict(data)
@@ -89,9 +86,8 @@ class ClientUser(User):
 
 
 class Member(Snowflake, Serializable):
-
     __slots__ = (
-        'roles', 'user', 'guild', 'nick','client'
+        'roles', 'user', 'guild', 'nick', 'client'
     )
 
     def __init__(self, client, guild, user, data=None):
@@ -153,7 +149,4 @@ class Member(Snowflake, Serializable):
     async def unban(self, reason=None):
         await self.client.api.unban(self, self.guild, reason=reason)
 
-
 # not done yet
-
-

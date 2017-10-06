@@ -26,7 +26,7 @@ import time
 
 from multio import Event
 
-from ..models import ClientUser, Guild, Message
+from ..models import ClientUser, Guild, Message, DMChannel, DMGroupChannel, DMCHANNEL, GROUPDMCHANNEL
 
 
 class EventHandler:
@@ -42,6 +42,12 @@ class EventHandler:
         for guild in data['guilds']:
             await self.handle_guild_create(guild)
 
+        for channel in data["private_channels"]:
+            if channel["type"] == DMCHANNEL:
+                self.client.channels.add(DMChannel(self.client, data))
+            elif channel["type"] == GROUPDMCHANNEL:
+                self.client.channels.add(DMGroupChannel(self.client, data))
+
         if not self.ready_event.is_set():
             bootup = time.time() - self.client._boot_up_time
             await self.client.emit('ready', bootup)
@@ -50,7 +56,9 @@ class EventHandler:
     async def handle_message_create(self, data):
         await self.ready_event.wait()
         message = Message(self.client, data)
-        self.client.messages.add(message)
+        self.client.messages.append(message)
+        if message.nonce in self.client._nonces:
+            self.client._nonces.pop(message.nonce).set_result(message)
         await self.client.emit('message', message)
 
     async def handle_guild_create(self, data):
@@ -61,7 +69,7 @@ class EventHandler:
             self.client.guilds.add(Guild(self.client, data))
 
         #if not self.ready_event.is_set():
-        #    if not sum(1 for g in self.client.guilds if g.unavailable):
+        #    if not sum(g.unavailable for g in self.client.guilds):
         #        bootup = time.time() - self.client._boot_up_time
         #        await self.ready_event.set()
         #        await self.client.emit('ready', bootup)
