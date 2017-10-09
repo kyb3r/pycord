@@ -177,7 +177,7 @@ class Context:
         else:
             raise ValueError('Parameter annotation must be callable')
 
-    def send(self, content, **kwargs):
+    def reply(self, content, **kwargs):
         return self.message.reply(content, **kwargs)
 
 
