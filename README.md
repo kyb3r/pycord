@@ -50,12 +50,12 @@ async def ready(time):
 
 @client.cmd('ping')
 async def ping(ctx): # the message that called the command
-    await ctx.send('Pong!') # yes, it does look like d.py :/ 
+    await ctx.reply('Pong!') # yes, it does look like d.py :/ 
 			    # going for a clean style for commands anyways
 
 @client.cmd('add') 
 async def add(ctx, *numbers: int):
-    await ctx.send(sum(numbers))
+    await ctx.reply(sum(numbers))
 
 def is_owner(ctx): # command checks
     return ctx.author.id == 1234567890
@@ -69,7 +69,7 @@ client.login('token')
 
 How to send messages
 ```py
-await ctx.send('content')
+await ctx.reply('content')
 await channel.send('content')
 await message.reply('content')
 await message.channel.send('content')
