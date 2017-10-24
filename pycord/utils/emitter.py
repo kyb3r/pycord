@@ -25,6 +25,7 @@ SOFTWARE.
 import inspect
 from abc import ABC
 from collections import defaultdict
+import multio
 
 
 class Emitter(ABC):
@@ -49,8 +50,11 @@ class Emitter(ABC):
         try:
             if hasattr(self, on_event):
                 await getattr(self, on_event)(*args, **kwargs)
+
             if event in self._events:
-                for callback in self._events[event]:
-                    await callback(*args, **kwargs)
+                async with multio.async.task_manager() as n:
+                    for callback in self._events[event]:
+                        multio.asynclib.spawn(n, callback, *args, **kwargs)
+
         except Exception as e:
             await self.emit('error', e)
