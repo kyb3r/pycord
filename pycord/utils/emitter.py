@@ -52,9 +52,9 @@ class Emitter(ABC):
                 await getattr(self, on_event)(*args, **kwargs)
 
             if event in self._events:
-                async with multio.async.task_manager() as n:
+                async with multio.asynclib.task_manager() as n:
                     for callback in self._events[event]:
-                        multio.asynclib.spawn(n, callback, *args, **kwargs)
+                        await multio.asynclib.spawn(n, callback, *args, **kwargs)
 
         except Exception as e:
             await self.emit('error', e)
