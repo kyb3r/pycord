@@ -40,7 +40,6 @@ class EventHandler:
         self.client.user = ClientUser(self.client, data)
 
         for guild in data['guilds']:
-            print(guild)
             await self.handle_guild_create(guild)
 
         for channel in data["private_channels"]:
