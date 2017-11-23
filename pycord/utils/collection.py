@@ -30,6 +30,10 @@ class Collection(dict):
         dict.__init__(self)
         self.index = indexor
         self.instance = instance
+    
+    def __iter__(self):
+        for val in self.values():
+            yield val
 
     def __add__(self, other):
         """ Add a collection to self """
