@@ -29,6 +29,7 @@ from collections import deque
 
 import asks
 import multio
+import sys
 
 from .api import HttpClient, ShardConnection, Webhook
 from .models import Channel, Guild, User
@@ -152,7 +153,12 @@ class Client(Emitter):
                 await multio.asynclib.spawn(nursery, shard.start, url)
 
         # wait for client to stop running
-        await self.running.wait()
+        try:
+            await self.running.wait()
+        except KeyboardInterrupt:
+            sys.exit(0)
+
+
 
     def login(self, token, bot=True):
         self._boot_up_time = time.time()
