@@ -40,6 +40,7 @@ class EventHandler:
         self.client.user = ClientUser(self.client, data)
 
         for guild in data['guilds']:
+            print(guild)
             await self.handle_guild_create(guild)
 
         for channel in data["private_channels"]:
@@ -48,10 +49,9 @@ class EventHandler:
             elif channel["type"] == GROUPDMCHANNEL:
                 self.client.channels.add(DMGroupChannel(self.client, data))
 
-        if not self.ready_event.is_set():
-            bootup = time.time() - self.client._boot_up_time
-            await self.client.emit('ready', bootup)
-            await self.ready_event.set()
+        await self.ready_event.wait()
+        bootup = time.time() - self.client._boot_up_time
+        await self.client.emit('ready', bootup)
 
     async def handle_message_create(self, data):
         if not self.ready_event.is_set():
@@ -67,13 +67,11 @@ class EventHandler:
         if guild:
             guild.from_dict(data)
         else:
-            self.client.guilds.add(Guild(self.client, data))
+            guild = Guild(self.client, data)
+            self.client.guilds.add(guild)
 
-        #if not self.ready_event.is_set():
-        #    if not sum(g.unavailable for g in self.client.guilds):
-        #        bootup = time.time() - self.client._boot_up_time
-        #        await self.ready_event.set()
-        #        await self.client.emit('ready', bootup)
+        if not any(g.unavailable for g in self.client.guilds):
+            await self.ready_event.set()
 
     async def handle_member_join(self, data):
         pass
