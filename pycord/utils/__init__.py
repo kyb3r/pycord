@@ -38,24 +38,11 @@ from .emitter import Emitter
 def get_libname():
     return __file__.split(os.sep)[-3]
 
-
 # PARSING
-try:
-    import earl
-
-    encoding = "erl"
-    encoder = earl.pack
-    decoder = earl.unpack
-except ImportError:
-    # try get fastest json parser
-    encoding = "json"
-    try:
-        import ujson as json
-    except ImportError:
-        import json
-
-    encoder = json.dumps
-    decoder = json.loads
+import json
+encoder = json.dumps
+decoder = json.loads
+encoding = "json"
 
 
 # api constants
