@@ -24,9 +24,9 @@ SOFTWARE.
 
 from abc import ABC, abstractmethod
 from itertools import chain
+from .message import Message
 
 from ..utils import id_to_time
-
 
 class Snowflake(ABC):
     """ Base Discord Object : everything will probably inherit from this """
@@ -39,13 +39,14 @@ class Snowflake(ABC):
             raise AttributeError("id is not set!")
         return id_to_time(int(_id))
 
-
 class Sendable(ABC):
     """ Base class for objects that can send messages """
     __slots__ = ()
 
-    def send(self, content=None, **kwargs):
-        return self.client.api.send_message(self, content=content, **kwargs)
+    async def send(self, content=None, **kwargs):
+        data = await self.client.api.send_message(self, content=content, **kwargs)
+        message = Message(self.client, data)
+        return message
 
     async def fsend(self, content=None, **kwargs):
         try:
@@ -55,24 +56,15 @@ class Sendable(ABC):
 
     @abstractmethod
     async def trigger_typing(self):
-        pass
+        return await self.client.api.trigger_typing(self)
 
-
-class Serializable:
+class Serializable(ABC):
     """ Anything that can go to and from a dict """
     __slots__ = ()
 
+    @abstractmethod
     def from_dict(self, data):
-        for attr in chain.from_iterable(getattr(cls, '__slots__', ()) for cls in self.__class__.__mro__):
-            if attr.endswith("_id") or attr == "id":
-                setattr(self, attr, int(data.get(attr, 0)))
-            else:
-                setattr(self, attr, data.get(attr))
+        return NotImplemented
 
     def to_dict(self):
-        d = {key: getattr(self, key, None)
-             for key in chain.from_iterable(getattr(cls, '__slots__', ()) for cls in self.__class__.__mro__)
-             }
-        return {key: value
-                for key, value in d.items()
-                if value is not None}
+        return NotImplemented
