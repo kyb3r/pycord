@@ -22,7 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from ..models.core import Snowflake, Sendable, Serializable
+from ..models.core import Snowflake, Serializable
+from abc import ABC
+from .embed import Embed
 
 TEXTCHANNEL = 0
 DMCHANNEL = 1
@@ -33,7 +35,16 @@ CATEGORYCHANNEL = 4
 GUILD_CHANNELS = (TEXTCHANNEL, VOICECHANNEL, CATEGORYCHANNEL)
 DM_CHANNELS = (GROUPDMCHANNEL, DMCHANNEL)
 
+class Sendable:
+    """ Base class for objects that can send messages """
 
+    async def send(self, content=None, *, embed=None, tts=False):
+        if isinstance(embed, Embed):
+            embed = embed.to_dict()
+        return await self.client.api.send_message(self, content=content, embed=embed, tts=tts)
+
+    async def trigger_typing(self):
+        return await self.client.api.trigger_typing(self)
 
 class Channel(Snowflake):
 
