@@ -65,8 +65,7 @@ class Message(Snowflake):
         self.type = data.get("type", 0)
 
     def reply(self, content: str=None, **kwargs):
-        kwargs['content'] = str(content)
-        return self.client.api.send_message(self.channel, **kwargs)
+        return self.channel.send(content, **kwargs)
 
     def delete(self):
         return self.client.api.delete_message(self.channel, self)
