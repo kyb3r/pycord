@@ -70,8 +70,8 @@ class Embed(Serializable):
     def add_field(self, name, value, inline=True):
         """Adds a field"""
         field = {
-            'name': name,
-            'value': value,
+            'name': str(name),
+            'value': str(value),
             'inline': inline
         }
         self.fields.append(field)
@@ -80,9 +80,9 @@ class Embed(Serializable):
     def set_author(self, name, icon_url=None, url=None):
         """Sets the author of the embed"""
         self.author = {
-            'name': name,
+            'name': str(name),
             'icon_url': icon_url,
-            'url': url
+            'url': str(url)
         }
         return self
 
@@ -99,15 +99,20 @@ class Embed(Serializable):
     def set_footer(self, text, icon_url=None):
         """Sets the footer of the embed"""
         self.footer = {
-            'text': text,
+            'text': str(text),
             'icon_url': icon_url
         }
         return self
 
     def to_dict(self):
         """Turns the object into a dictionary"""
-        return {
+        d = {
             key: getattr(self, key)
             for key in self.__slots__
             if hasattr(self, key) and getattr(self, key)
         }
+        ts = d.get('timestamp')
+        if ts:
+            d['timestamp'] = ts.isoformat()
+        
+        return d
