@@ -74,3 +74,9 @@ class EventHandler:
 
     async def handle_member_join(self, data):
         pass
+
+    async def handle_member_update(self, data):
+        pass
+    
+    async def handle_message_update(self, data):
+        pass
