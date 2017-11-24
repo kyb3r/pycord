@@ -163,7 +163,7 @@ class HttpClient:
                     if remaining == '0' and resp.status_code != 429:
                         hold_lock.hold()
                         delay = int(resp.headers.get('X-Ratelimit-Reset')) - time.time()
-                        await nursery.start_soon(run_later, delay, lock.release())
+                        nursery.start_soon(run_later, delay, lock.release())
 
                     # check if route IS rate limited
                     elif resp.status_code == 429:
