@@ -153,27 +153,20 @@ class Client(Emitter):
                 await multio.asynclib.spawn(nursery, shard.start, url)
 
         # wait for client to stop running
-        try:
-            await self.running.wait()
-        except KeyboardInterrupt:
-            sys.exit(0)
-
-
+        await self.running.wait()
 
     def login(self, token, bot=True):
         self._boot_up_time = time.time()
-        try:
-            multio.run(self.start, token, bot)
-        finally:
-            self.close()
+        multio.run(self.start, token, bot)
+        self.close()
 
     async def on_error(self, error):
         """Default error handler for events"""
-        traceback.print_exc()  # This actually just prints None...
-        # error.__traceback__ can be printed however
+        print('An error rip')
+        traceback.print_exception(type(error), error, error.__traceback__)
 
     async def on_command_error(self, error):
-        traceback.print_exc()
+        traceback.print_exception(type(error), error, error.__traceback__)
 
     async def on_message(self, message):
         await self.process_commands(message)
