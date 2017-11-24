@@ -115,6 +115,7 @@ class Context:
         args, kwargs = await self.get_arguments()
         callback = self.command.callback
         check = self.command.check
+        should_call = True
         if check is not inspect._empty:
             if inspect.iscoroutinefunction(check):
                 should_call = await check(self)
