@@ -22,16 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from ..models.core import Snowflake, Sendable, Serializable
+from ..models.core import Snowflake,  Serializable
+from .channel import Sendable
 from ..models.role import Role
 from ..utils import Collection
 
 
 class User(Snowflake, Sendable, Serializable):
-    __slots__ = (
-        'username', 'avatar', 'id', 'avatar',
-        'discriminator', 'bot', 'verified'
-    )
 
     def __init__(self, client, data=None):
         if data is None:
@@ -64,10 +61,6 @@ class User(Snowflake, Sendable, Serializable):
 
 
 class ClientUser(User):
-    __slots__ = (
-        'email', 'mfa_enabled', 'username', 'avatar',
-        'id', 'avatar', 'discriminator', 'bot', 'verified'
-    )
 
     def __init__(self, client, data):
         super().__init__(client, data)
@@ -87,13 +80,8 @@ class ClientUser(User):
 
 
 class Member(Snowflake, Serializable):
-    __slots__ = (
-        'roles', 'user', 'guild', 'nick', 'client'
-    )
 
-    def __init__(self, client, guild, user, data=None):
-        if data is None:
-            data = {}
+    def __init__(self, client, guild, user, data={}):
         super().__init__()
         self.client = client
         self.guild = guild
@@ -134,10 +122,11 @@ class Member(Snowflake, Serializable):
 
     def from_dict(self, data):
         self.nick = data.get('nick')
+        self.status = 'offline'
 
         if self.guild:
             for role in data.get('roles', []):
-                role = self.guild._roles.get(int(role))
+                role = self.guild.roles.get(int(role))
                 if role:
                     self.roles.add(role)
 
