@@ -29,7 +29,7 @@ from ..models.embed import Embed
 from ..utils import parse_time
 
 
-class Message(Snowflake, Serializable):
+class Message(Snowflake):
     __slots__ = ("guild", "content", "tts", "channel", "author"
                  "mention_everyone", "mentions", "mention_roles",
                  "attachments", "embeds", "channel_id", "timestamp",

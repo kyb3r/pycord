@@ -24,7 +24,7 @@ SOFTWARE.
 
 import time
 
-from multio import Event
+import trio
 
 from ..models import ClientUser, Guild, Message, DMChannel, DMGroupChannel, DMCHANNEL, GROUPDMCHANNEL
 
@@ -34,7 +34,7 @@ class EventHandler:
         self.shard = shard
         self.client = shard.client
         self.api = self.client.api
-        self.ready_event = Event()
+        self.ready_event = trio.Event()
 
     async def handle_ready(self, data):
         self.client.user = ClientUser(self.client, data)
@@ -70,7 +70,7 @@ class EventHandler:
             self.client.guilds.add(guild)
 
         if not any(g.unavailable for g in self.client.guilds):
-            await self.ready_event.set()
+            self.ready_event.set()
 
     async def handle_member_join(self, data):
         pass

@@ -35,28 +35,25 @@ DM_CHANNELS = (GROUPDMCHANNEL, DMCHANNEL)
 
 
 
+class Channel(Snowflake):
 
-class TextChannel(Sendable, Snowflake):
+    def from_dict(self, data):
+        for attr in data:
+            if 'id' in attr:
+                setattr(self, attr, int(data[attr]))
+            else:
+                setattr(self, attr, data[attr])
+
+class TextChannel(Sendable, Channel):
     __slots__ = ("topic", "parent",'name', 'position',
                  'guild', 'type',
                  'permission_overwrites', 'id')
 
     def __init__(self, guild, data):
-        print(data)
         self.guild = guild
         self.client = self.guild.client
         self.parent = self.client.channels.get(int(data.get("parent_id", 0)))
         self.from_dict(data)
-    
-    def from_dict(self, data):
-        self.topic = data.get('topic') if topic else None
-        self.position = int(data.get('position', 0))
-        self.name = data.get('name')
-        self.type = int(data.get('type'))
-        self.permission_overwrites = data.get('permission_overwrites')
-        self.id = int(data.get('id'))
-        self.nsfw = data.xwget('nsfw')
-        # TODO: have to make a class foxr permissions.
         
     def __str__(self):
         return self.name
@@ -89,8 +86,6 @@ class CategoryChannel(Channel):
         self.client = self.guild.client
         self.parent = self.client.channels.get(int(data.get("parent_id", 0) or 0))
         self.from_dict(data)
-    
-    def from_dict(self, data)
         
     def __str__(self):
         return self.name

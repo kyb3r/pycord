@@ -28,10 +28,11 @@ from collections import defaultdict
 from urllib.parse import quote
 
 import asks
-import multio
+import trio
 
 from .. import __version__, __github__
 from ..utils import API, run_later, encoder, decoder, id_now
+from ..models.errors import HttpError
 
 
 class HoldableLock:
@@ -49,7 +50,7 @@ class HoldableLock:
 
     async def __aexit__(self, *args):
         if self.unlock:
-            await self.lock.release()
+            self.lock.release()
 
 
 class GlobalLock:
@@ -73,8 +74,8 @@ class HttpClient:
         self.client = client
         self.token = client.token
         self.retries = 5
-        self.buckets = defaultdict(multio.Lock)
-        self.global_event = multio.Event()
+        self.buckets = defaultdict(trio.Lock)
+        self.global_event = trio.Event()
 
         # set global lock and create user agent
         user_agent = 'DiscordBot ({0} {1}) Python/{2[0]}.{2[1]}'
@@ -148,7 +149,7 @@ class HttpClient:
 
         # open http request with retries
         async with HoldableLock(lock) as hold_lock:
-            async with multio.asynclib.task_manager() as nursery:
+            async with trio.open_nursery() as nursery:
                 for tries in range(self.retries):
                     resp = await self.session.request(method, endpoint, headers=headers, data=data, json=_json)
 
@@ -162,7 +163,7 @@ class HttpClient:
                     if remaining == '0' and resp.status_code != 429:
                         hold_lock.hold()
                         delay = int(resp.headers.get('X-Ratelimit-Reset')) - time.time()
-                        await multio.asynclib.spawn(nursery, run_later, delay, lock.release())
+                        await nursery.start_soon(run_later, delay, lock.release())
 
                     # check if route IS rate limited
                     elif resp.status_code == 429:
@@ -170,7 +171,7 @@ class HttpClient:
 
                             # wait for rate limit delay delay
                             retry_after = data.get('retry-after', 0)
-                            await multio.asynclib.sleep(retry_after / 1000.0)
+                            await trio.sleep(retry_after / 1000.0)
 
                         # retry request
                         continue
@@ -181,20 +182,20 @@ class HttpClient:
 
                     # forbidden path
                     elif resp.status_code == 403:
-                        raise Exception("Forbidden: {} {}".format(method, endpoint))
+                        raise HttpError(resp, data)
 
                     # path not found
                     elif resp.status_code == 404:
-                        raise Exception("Not Found: {} {}".format(method, endpoint))
+                        raise HttpError(resp, data)
 
                     # service is down, wait a bit and retry later
                     elif resp.status_code in (500, 502):
-                        await multio.asynclib.sleep(1 + tries * 2)
+                        await trio.sleep(1 + tries * 2)
                         continue
 
                     # unknown http error
                     else:
-                        raise Exception("HTTP Error: {.status_code} {} {}".format(resp, method, endpoint))
+                        raise HttpError(resp, data)
 
         # retries have been exhausted
         raise Exception("Failed HTTP Request: {.status_code} {} {}".format(resp, method, endpoint))

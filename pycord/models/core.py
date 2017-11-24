@@ -24,7 +24,6 @@ SOFTWARE.
 
 from abc import ABC, abstractmethod
 from itertools import chain
-from .message import Message
 
 from ..utils import id_to_time
 
@@ -44,9 +43,7 @@ class Sendable(ABC):
     __slots__ = ()
 
     async def send(self, content=None, **kwargs):
-        data = await self.client.api.send_message(self, content=content, **kwargs)
-        message = Message(self.client, data)
-        return message
+        return await self.client.api.send_message(self, content=content, **kwargs)
 
     async def fsend(self, content=None, **kwargs):
         try:

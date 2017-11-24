@@ -28,8 +28,9 @@ import traceback
 from collections import deque
 
 import asks
-import multio
+import trio
 import sys
+import multio
 
 from .api import HttpClient, ShardConnection, Webhook
 from .models import Channel, Guild, User
@@ -50,9 +51,6 @@ class Client(Emitter):
     shard_count : Optional[int]
         The amount of shards to use, this will be automatically set
         using the bot ws gateway endpoint if not provided.
-    lib : Optional[str]
-        The async library to use, supports either 'trio' or 'curio',
-        defaults to 'trio' if not provided.
     message_cache_max : Optional[int]
         The maximum number of messages to store in the internal deque
         cache. Defaults to 2500 if not provided.
@@ -87,13 +85,13 @@ class Client(Emitter):
 
     """
 
-    def __init__(self, shard_count=-1, prefixes='py.', message_cache_max=2500, lib='trio'):
+    def __init__(self, shard_count=-1, prefixes='py.', message_cache_max=2500):
         super().__init__()
-        self.async_init(lib)
+        self.async_init()
         self.token = ''
         self.is_bot = True
         self._boot_up_time = None
-        self.running = multio.Event()
+        self.running = trio.Event()
         self.api = HttpClient(self)
         self.session = asks.Session()  # public session
         self.shards = [] if shard_count < 1 else list(range(shard_count))
@@ -109,10 +107,10 @@ class Client(Emitter):
     def __del__(self):
         if self.is_bot:
             self.close()
-
-    def async_init(self, lib):
-        multio.init(lib)
-        asks.init(lib)
+    
+    def async_init(self):
+        multio.init('trio')
+        asks.init('trio')
 
     def wait_for_nonce(self, nonce):
         event = multio.Event()
@@ -122,10 +120,10 @@ class Client(Emitter):
     async def _close(self):
         for shard in self.shards:
             await shard.close()
-        await self.running.set()
+        self.running.set()
 
     def close(self):
-        multio.run(self._close)
+        trio.run(self._close)
 
     async def start(self, token, bot):
         self.token = self.api.token = token
@@ -136,6 +134,7 @@ class Client(Emitter):
         if self.is_bot:
             endpoint += '/bot'
         info = await self.api.get(endpoint)
+
         url = info.get('url')
 
         # get amount of shards
@@ -146,19 +145,23 @@ class Client(Emitter):
             shard_count = len(self.shards)
 
         # spawn shard connections
-        async with multio.asynclib.task_manager() as nursery:
+        async with trio.open_nursery() as nursery:
             for shard_id in range(shard_count):
                 shard = ShardConnection(self, shard_id, shard_count)
                 self.shards[shard_id] = shard
-                await multio.asynclib.spawn(nursery, shard.start, url)
+                nursery.start_soon(shard.start, url)
 
         # wait for client to stop running
         await self.running.wait()
 
     def login(self, token, bot=True):
         self._boot_up_time = time.time()
-        multio.run(self.start, token, bot)
-        self.close()
+        try:
+            trio.run(self.start, token, bot)
+        except KeyboardInterrupt:
+            pass
+        finally:
+            self.close()
 
     async def on_error(self, error):
         """Default error handler for events"""
