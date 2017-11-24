@@ -24,7 +24,6 @@ SOFTWARE.
 
 from abc import ABC, abstractmethod
 from itertools import chain
-
 from ..utils import id_to_time
 
 class Snowflake(ABC):
@@ -38,22 +37,6 @@ class Snowflake(ABC):
             raise AttributeError("id is not set!")
         return id_to_time(int(_id))
 
-class Sendable(ABC):
-    """ Base class for objects that can send messages """
-    __slots__ = ()
-
-    async def send(self, content=None, **kwargs):
-        return await self.client.api.send_message(self, content=content, **kwargs)
-
-    async def fsend(self, content=None, **kwargs):
-        try:
-            return await self.send(content, **kwargs)
-        except:
-            return None
-
-    @abstractmethod
-    async def trigger_typing(self):
-        return await self.client.api.trigger_typing(self)
 
 class Serializable(ABC):
     """ Anything that can go to and from a dict """
