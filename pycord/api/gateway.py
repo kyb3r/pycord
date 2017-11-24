@@ -106,7 +106,7 @@ class ShardConnection:
         await self.send(self.RESUME, payload)
 
     async def identify(self):
-        """ Send identification packet """
+        """Send identification packet"""
         payload = {
             'token': self.client.token,
             'properties': {
@@ -189,7 +189,7 @@ class ShardConnection:
         # handle gateway events
         elif op == self.DISPATCH:
             handle = 'handle_{}'.format(event.lower())
-            if hasattr(self.handler, handle):
+            if hasattr(self.handler, handle):       
                 await asynclib.spawn(nursery, getattr(self.handler, handle), data)
 
     async def start(self, url):
@@ -202,4 +202,7 @@ class ShardConnection:
         self.ws = await asyncwebsockets.connect_websocket(url)
         async with asynclib.task_manager() as nursery:
             while self.alive:
-                await self.read_data(nursery)
+                try:
+                    await self.read_data(nursery)
+                except Exception as e:
+                    self.client.emit('error', e)
