@@ -38,7 +38,7 @@ message_count = 0
 
 @client.on('message')
 async def stats(message):
-  message_count += 1
+    message_count += 1
  
 # easily register multiple events
 
