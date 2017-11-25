@@ -34,38 +34,18 @@ async def ping_command(message):
     if message.content.startswith('py.ping'):
         await message.reply('Pong!')
 
+message_count = 0
+
+@client.on('message')
+async def stats(message):
+  message_count += 1
+ 
+# easily register multiple events
+
 client.login('token')
 ```
 
 ### Commands examples
-
-```py
-import pycord
-
-client = pycord.Client()
-
-@client.cmd('ready')
-async def ready(time):
-   print('Bot online!')
-
-@client.cmd('ping')
-async def ping(ctx): # the message that called the command
-    await ctx.reply('Pong!') # yes, it does look like d.py :/ 
-			    # going for a clean style for commands anyways
-
-@client.cmd('add') 
-async def add(ctx, *numbers: int):
-    await ctx.reply(sum(numbers))
-
-def is_owner(ctx): # command checks
-    return ctx.author.id == 1234567890
-
-@client.cmd('eval')
-async def _eval(ctx, *, code) -> is_owner:
-    pass
-
-client.login('token')
-```
 
 How to send messages
 ```py
