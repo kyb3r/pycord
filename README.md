@@ -14,7 +14,7 @@ Pycord is a Discord API wrapper currently in development. It's easy to use, obje
 ## Installation
 You can easily install the pre-release of this library by doing `pip3 install py-cord` (not the latest)
 
-## Examples
+## Event Registration
 
 ```py
 import pycord
