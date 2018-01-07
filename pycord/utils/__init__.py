@@ -32,7 +32,8 @@ from multio import asynclib
 
 from .collection import Collection
 from .emitter import Emitter
-
+from .commands import *
+from .converter import *
 
 # get the library name by folder
 def get_libname():

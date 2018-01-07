@@ -1,7 +1,7 @@
 """
 MIT License
 
-Copyright (c) 2017 verixx / king1600
+Copyright (c) 2017 Kyb3r
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,10 +32,9 @@ class Webhook:
         self.username = options.get('username')
         self.avatar_url = options.get('avatar_url')
 
-    def send(self, content=None, embeds=None, tts=False):
+    def send(self, content=None, embeds=[], tts=False):
         '''Sends a message to the payload url'''
-        if embeds is None:
-            embeds = []
+
         if self.url is None:
             raise RuntimeError("url is not set!")
 
@@ -45,7 +44,7 @@ class Webhook:
             'avatar_url': self.avatar_url,
             'tts': tts
         }
-
+        
         if not hasattr(embeds, '__iter__'):  # supports a list/tuple of embeds
             embeds = [embeds]  # or a single embed
 

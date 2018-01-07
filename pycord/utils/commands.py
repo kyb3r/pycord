@@ -24,29 +24,32 @@ SOFTWARE.
 
 import inspect
 import shlex
-
 from .converter import Converter
 
 
 class Command:
-    def __init__(self, client, **kwargs):
-        self.client = client
+    def __init__(self, **kwargs):
         self.callback = kwargs.get('callback')
         self.name = kwargs.get('name')
         self.aliases = [self.name] + kwargs.get('aliases', [])
         self.help_doc = inspect.getdoc(self.callback)
         self.check = inspect.signature(self.callback).return_annotation
+        self.signature = inspect.signature(self.callback).parameters.items()
 
-    @property
-    def signature(self):
-        pass
-
-    async def invoke(self, *args, **kwargs):
-        try:
-            await self.callback(*args, **kwargs)
-        except Exception as e:
-            await self.client.emit('command_error', e)
-
+def cmd(name=None, *, callback=None, aliases=[]):
+    if isinstance(aliases, str):
+        aliases = [aliases]
+    if inspect.iscoroutinefunction(callback):
+        name = name or callback.__name__
+        cmd = Command(name=name, callback=callback, aliases=aliases)
+        return cmd
+    else:
+        def wrapper(coro):
+            if not inspect.iscoroutinefunction(coro):
+                raise RuntimeWarning('Callback is not a coroutine!')
+            cmd = Command(name=name or coro.__name__, callback=coro, aliases=aliases)
+            return cmd
+        return wrapper
 
 class Context:
     def __init__(self, client, message):
@@ -131,7 +134,7 @@ class Context:
 
     async def get_arguments(self):
 
-        signature = inspect.signature(self.callback).parameters.items()
+        signature = self.command.signature
         try:
             splitted = shlex.split(self.command_content, posix=False)
         except:
@@ -165,6 +168,8 @@ class Context:
         if inspect.isclass(converter) and issubclass(converter, Converter):
             obj = converter(self, value)
             converter = obj.convert
+        else:
+            return converter(value)
         if inspect.iscoroutinefunction(converter):
             return await converter(self, value)
         else:

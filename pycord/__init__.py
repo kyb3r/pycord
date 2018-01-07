@@ -5,8 +5,9 @@ __author__ = ["JustMaffie", "verixx", "king1600", "henry232323"]
 __github__ = 'https://github.com/verixx/pycord'
 
 from .client import Client
-from .models import Embed
-
+from .models import *
+from .utils import *
+from .api import Webhook
 
 def init(lib):
     import multio

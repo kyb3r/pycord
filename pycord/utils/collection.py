@@ -80,7 +80,7 @@ class Collection(dict):
                 del self[key]
 
     def has_attrs(self, obj, **attrs):
-        """ Check if object has attrs """
+        """ Check if object has attrs """ 
         for key, value in attrs.items():
             if not getattr(obj, key, None) == value:
                 return False
@@ -99,6 +99,16 @@ class Collection(dict):
         """ Find all objects which meet callable condition """
         return [item for item in self if condition(item)]
 
-    def find_by(self, **attrs):
+    def find_one(self, condition):
+        """ Find first  which meet callable condition """
+        for item in self:
+            if condition(item):
+                return item
+
+    def get(self, id=None, **attrs):
         """ Find using arguments and attr to value filters """
-        return self.find(lambda i: self.has_attrs(i, **attrs))
+        attrs['id'] = id or attrs.get('id')
+        return self.find_one(lambda i: self.has_attrs(i, **attrs))
+
+
+

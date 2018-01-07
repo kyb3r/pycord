@@ -85,7 +85,7 @@ class Client(Emitter):
 
     """
 
-    def __init__(self, shard_count=-1, prefixes='py.', message_cache_max=2500):
+    def __init__(self, shard_count=-1, prefixes='py.', message_cache_max=2500, **kwargs):
         super().__init__()
         self.async_init()
         self.token = ''
@@ -165,7 +165,7 @@ class Client(Emitter):
 
     async def on_error(self, error):
         """Default error handler for events"""
-        print('An error rip')
+        print('Error caught for the on_error event:', file=sys.stderr)
         traceback.print_exception(type(error), error, error.__traceback__)
 
     async def on_command_error(self, error):
@@ -178,24 +178,23 @@ class Client(Emitter):
         context = Context(self, msg)
         await context.invoke()
 
-    def cmd(self, name=None, *, callback=None, aliases=None):
-        if aliases is None:
-            aliases = []
+    def cmd(self, name=None, *, callback=None, aliases=[]):
+        if isinstance(aliases, str):
+            aliases = [aliases]
         if inspect.iscoroutinefunction(callback):
             name = name or callback.__name__
-            cmd = Command(self, name=name, callback=callback, aliases=aliases)
+            cmd = Command(name=name, callback=callback, aliases=aliases)
             self.commands.add(cmd)
         else:
             def wrapper(coro):
                 if not inspect.iscoroutinefunction(coro):
                     raise RuntimeWarning('Callback is not a coroutine!')
-                cmd = Command(self, name=name or coro.__name__, callback=coro, aliases=aliases)
+                cmd = Command(name=name or coro.__name__, callback=coro, aliases=aliases)
                 self.commands.add(cmd)
                 return cmd
-
             return wrapper
 
-    def register_webhook(self, name, url, **fields):
+    def add_webhook(self, name, url, **fields):
         '''Register a webhook to the client.
 
         Example:

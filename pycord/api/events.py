@@ -1,7 +1,7 @@
 """
 MIT License
 
-Copyright (c) 2017 verixx / king1600
+Copyright (c) 2017 Kyb3r
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@ import time
 
 import trio
 
-from ..models import ClientUser, Guild, Message, DMChannel, DMGroupChannel, DMCHANNEL, GROUPDMCHANNEL
+from ..models import ClientUser, Guild, Message, DMChannel, DMGroupChannel, DMCHANNEL, GROUPDMCHANNEL, Member
 
 
 class EventHandler:
@@ -73,10 +73,23 @@ class EventHandler:
             self.ready_event.set()
 
     async def handle_member_join(self, data):
-        pass
+        '''Handles the event when a member joins a guild.'''
+        user = data.get('user')
+        if user:
+            user_id = int(user['id'])
+            if not self.client.users.has(user_id):
+                user = User(self.client, user)
+                self.client.users.add(user)
+            else:
+                user = self.client.users.get(user_id)
+
+        # TODO: Check data and add to guild accordingly.
+
 
     async def handle_member_update(self, data):
-        pass
+        '''Handles a guild member update (nickname change, role add, etc...)'''
+        return NotImplemented
     
     async def handle_message_update(self, data):
-        pass
+        '''Handles a message edit.''''
+        return NotImplemented
