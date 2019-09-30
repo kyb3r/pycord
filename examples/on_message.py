@@ -23,4 +23,4 @@ async def ping_command(message):
         await message.reply('Pong!')
 
 
-curio.run(client.login, 'NTg5OTMxNDIwNTA0MjkzMzk5.XZId5Q.zXTcXoZwYZVxPYo8LlVoOw83R2U')
+curio.run(client.login, 'token')
