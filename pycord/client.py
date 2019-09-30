@@ -80,6 +80,7 @@ class Client(Emitter):
         self.webhooks = Collection(Webhook, indexor='name')
         self.prefixes = prefixes if isinstance(prefixes, list) else [prefixes]
         self._nonces = dict()
+        self.user = None
 
     def __del__(self):
         if self.is_bot:

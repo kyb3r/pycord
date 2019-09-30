@@ -26,7 +26,9 @@ class HoldableLock:
 
     async def __aexit__(self, *args):
         if self.unlock:
-            await self.lock.release()
+            rel = self.lock.release()
+            if rel is not None:
+                await rel
 
 
 class GlobalLock:
