@@ -1,5 +1,3 @@
-
-
 import platform
 import time
 import traceback
@@ -107,19 +105,17 @@ class ShardConnection:
 
         await self.send(self.IDENTIFY, payload)
 
-    async def read_data(self, wrapped_websocket, nursery):
+    async def read_data(self, nursery):
         """ Start reading data from websocket connection """
         if self.ws is None:
             return
-        async for event in wrapped_websocket:
+        async for event in self.ws:
             try:
                 # unpack data and save sequence number
                 try:
                     data = event.data
                 except:
-                    await self.close()
-                    await self.client.running.set()
-                    break
+                    return
                 if isinstance(data, bytes):
                     data = zlib.decompress(data, 15, 10490000).decode('utf-8')
                 data = decoder(data)
@@ -187,12 +183,16 @@ class ShardConnection:
                 try:
                     if sniffio.current_async_library() == "curio":
                         import curio.meta
-                        async with curio.meta.finalize(self.ws) as wrapped_websocket:
-                            await self.read_data(wrapped_websocket, nursery)
+                        async with curio.meta.finalize(self.ws):
+                            await self.read_data(nursery)
                     else:
                         await self.read_data(nursery)
                 except KeyboardInterrupt:
                     await self.close()
                     await self.client.running.set()
+                    break
                 except Exception as e:
                     await self.client.emit('error', e)
+                finally:
+                    self.ws.close()
+                    self.ws = await asyncwebsockets.create_websocket(url)
