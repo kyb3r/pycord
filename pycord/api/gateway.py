@@ -80,7 +80,7 @@ class ShardConnection:
     async def send(self, op=DISPATCH, d=None):
         if self.ws is not None:
             data = encoder({'op': op, 'd': d})
-            await self.ws.send_message(data)
+            await self.ws.send(data)
 
     async def ping(self, data=None):
         start = time.time()
@@ -133,11 +133,11 @@ class ShardConnection:
         if self.ws is None:
             return
 
-        while True:
+        async for event in self.ws:
             try:
                 # unpack data and save sequence number
                 try:
-                    data = (await self.ws.next_message()).data
+                    data = event.data
                 except:
                     await self.close()
                     self.client.running.set()
@@ -206,7 +206,7 @@ class ShardConnection:
         url += API.WS_ENDPOINT
 
         # start connection loop
-        self.ws = await asyncwebsockets.connect_websocket(url)
+        self.ws = await asyncwebsockets.create_websocket(url)
 
         async with trio.open_nursery() as nursery:
             while self.alive:

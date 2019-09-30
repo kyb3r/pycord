@@ -27,6 +27,7 @@ import time
 from collections import defaultdict
 from urllib.parse import quote
 
+import anyio
 import asks
 import trio
 
@@ -214,7 +215,6 @@ class HttpClient:
 
         await self.post(route, data=payload)
         await self.client.wait_for_nonce(nonce)
-        print("done waiting!")
 
     def send_typing(self, channel):
         route = '/channels/{.id}/typing'.format(channel)

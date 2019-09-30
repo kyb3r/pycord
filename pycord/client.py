@@ -27,10 +27,10 @@ import time
 import traceback
 from collections import deque
 
+import anyio
 import asks
 import trio
 import sys
-import multio
 
 from .api import HttpClient, ShardConnection, Webhook
 from .models import Channel, Guild, User
@@ -85,9 +85,9 @@ class Client(Emitter):
 
     """
 
-    def __init__(self, shard_count=-1, prefixes='py.', message_cache_max=2500, **kwargs):
+    def __init__(self, library, shard_count=-1, prefixes='py.', message_cache_max=2500, **kwargs):
         super().__init__()
-        self.async_init()
+        asks.init(library)
         self.token = ''
         self.is_bot = True
         self._boot_up_time = None
@@ -107,13 +107,9 @@ class Client(Emitter):
     def __del__(self):
         if self.is_bot:
             self.close()
-    
-    def async_init(self):
-        multio.init('trio')
-        asks.init('trio')
 
     def wait_for_nonce(self, nonce):
-        event = multio.Event()
+        event = anyio.Event()
         self._nonces[str(nonce)] = event
         return event.wait()
 
@@ -122,8 +118,8 @@ class Client(Emitter):
             await shard.close()
         self.running.set()
 
-    def close(self):
-        trio.run(self._close)
+    async def close(self):
+        await self._close()
 
     async def start(self, token, bot):
         self.token = self.api.token = token
@@ -154,14 +150,14 @@ class Client(Emitter):
         # wait for client to stop running
         await self.running.wait()
 
-    def login(self, token, bot=True):
+    async def login(self, token, bot=True):
         self._boot_up_time = time.time()
         try:
-            trio.run(self.start, token, bot)
+            await self.start(token, bot)
         except KeyboardInterrupt:
             pass
         finally:
-            self.close()
+            await self.close()
 
     async def on_error(self, error):
         """Default error handler for events"""

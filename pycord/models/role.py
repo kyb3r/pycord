@@ -22,17 +22,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-
 from ..models.core import Snowflake, Serializable
 from ..models.perms import Permissions
 
 
 class Role(Snowflake, Serializable):
-
     __slots__ = (
-            'guild', 'id', 'color', 'pinned', 'position', 
-            'managed','mentionable', 'permissions','name'
-            )
+        'guild', 'id', 'color', 'pinned', 'position',
+        'managed', 'mentionable', 'permissions', 'name',
+        'colour', 'perms'
+    )
 
     def __init__(self, guild, data):
         if data is None:

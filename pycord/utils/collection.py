@@ -30,7 +30,7 @@ class Collection(dict):
         dict.__init__(self)
         self.index = indexor
         self.instance = instance
-    
+
     def __iter__(self):
         for val in self.values():
             yield val
@@ -80,7 +80,7 @@ class Collection(dict):
                 del self[key]
 
     def has_attrs(self, obj, **attrs):
-        """ Check if object has attrs """ 
+        """ Check if object has attrs """
         for key, value in attrs.items():
             if not getattr(obj, key, None) == value:
                 return False
@@ -89,8 +89,8 @@ class Collection(dict):
     def has(self, key):
         """ Check if object with id in collection """
         if isinstance(key, self.instance):
-            return self.__contains__(key)
-        for item in self:
+            return key in self.values()
+        for item in self.values():
             if getattr(item, self.index, None) == key:
                 return True
         return False
@@ -107,8 +107,10 @@ class Collection(dict):
 
     def get(self, id=None, **attrs):
         """ Find using arguments and attr to value filters """
+        try:
+            return next(filter(lambda x: x.id == id, self.values()))
+        except StopIteration:
+            return
+
         attrs['id'] = id or attrs.get('id')
         return self.find_one(lambda i: self.has_attrs(i, **attrs))
-
-
-

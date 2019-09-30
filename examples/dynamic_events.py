@@ -25,7 +25,11 @@ SOFTWARE.
 import datetime
 
 import pycord
+import trio
 
+
+async def message_handler(msg):
+    print("This event was registered in __init__ and doesn't have to be part of my client class")
 
 class MyBot(pycord.Client):
     """
@@ -38,23 +42,19 @@ class MyBot(pycord.Client):
     """
 
     def __init__(self):
-        super().__init__()
+        super().__init__('trio')
         self.on('message', self.message_handler)
 
-    async def message_handler(self, msg):
-        print('This event was registered in __init__')
-
     async def on_message(self, msg):
-        print('This event is called automatically')
+        print("We've received a message in #{} with content \"{}\"".format(msg.channel.name, msg.content))
         await self.process_commands(msg)
 
     async def on_ready(self, _bootup):
         if not hasattr(self, 'uptime'):
             self.uptime = datetime.datetime.utcnow()
-        print('This event is called automatically')
+        print("We're ready!")
 
 
 if __name__ == '__main__':
-    pycord.init("trio")
     client = MyBot()
-    client.login('token')
+    trio.run(client.login, 'NTg5OTMxNDIwNTA0MjkzMzk5.XZFIQw.3FmrlCRKjbB0yUrh-xXVYLYYz8U')

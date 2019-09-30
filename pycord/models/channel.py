@@ -35,6 +35,7 @@ CATEGORYCHANNEL = 4
 GUILD_CHANNELS = (TEXTCHANNEL, VOICECHANNEL, CATEGORYCHANNEL)
 DM_CHANNELS = (GROUPDMCHANNEL, DMCHANNEL)
 
+
 class Sendable:
     """ Base class for objects that can send messages """
 
@@ -46,26 +47,32 @@ class Sendable:
     async def trigger_typing(self):
         return await self.client.api.trigger_typing(self)
 
+
 class Channel(Snowflake):
 
     def from_dict(self, data):
         for attr in data:
             if 'id' in attr:
-                setattr(self, attr, int(data[attr]))
+                try:
+                    setattr(self, attr, int(data[attr]))
+                except TypeError:
+                    setattr(self, attr, data[attr])
             else:
                 setattr(self, attr, data[attr])
 
+
 class TextChannel(Sendable, Channel):
-    __slots__ = ("topic", "parent",'name', 'position',
+    __slots__ = ("topic", "parent", 'name', 'position',
                  'guild', 'type',
                  'permission_overwrites', 'id')
 
     def __init__(self, guild, data):
+        self.type = TEXTCHANNEL
         self.guild = guild
         self.client = self.guild.client
-        self.parent = self.client.channels.get(int(data.get("parent_id", 0)))
+        self.parent = self.client.channels.get(int(data.get("parent_id") or 0))
         self.from_dict(data)
-        
+
     def __str__(self):
         return self.name
 
@@ -80,6 +87,7 @@ class VoiceChannel(Channel):
     __slots__ = ('bitrate', 'user_limit', 'parent')
 
     def __init__(self, guild, data):
+        self.type = VOICECHANNEL
         self.guild = guild
         self.client = self.guild.client
         self.parent = self.client.channels.get(int(data.get("parent_id", 0) or 0))
@@ -93,11 +101,12 @@ class CategoryChannel(Channel):
     __slots__ = ('name', 'position', 'guild')
 
     def __init__(self, guild, data):
+        self.type = CATEGORYCHANNEL
         self.guild = guild
         self.client = self.guild.client
         self.parent = self.client.channels.get(int(data.get("parent_id", 0) or 0))
         self.from_dict(data)
-        
+
     def __str__(self):
         return self.name
 
@@ -106,6 +115,7 @@ class DMGroupChannel(Channel, Sendable):
     __slots__ = ('recipients', 'icon', 'owner')
 
     def __init__(self, client, data):
+        self.type = GROUPDMCHANNEL
         self.client = client
         self.owner = self.client.users.get(int(data.get("owner_id", 0)))
         self.name = None
@@ -118,6 +128,7 @@ class DMGroupChannel(Channel, Sendable):
 
 class DMChannel(Channel, Sendable):
     def __init__(self, client, data):
+        self.type = DMCHANNEL
         self.client = client
         self.parent = self.client.channels.get(int(data.get("parent_id", 0) or 0))
         self.from_dict(data)

@@ -27,20 +27,22 @@ import re
 import time
 from base64 import b64encode
 from datetime import datetime, timedelta
-
-from multio import asynclib
+import anyio
 
 from .collection import Collection
 from .emitter import Emitter
 from .commands import *
 from .converter import *
 
+
 # get the library name by folder
 def get_libname():
     return __file__.split(os.sep)[-3]
 
+
 # PARSING
 import json
+
 encoder = json.dumps
 decoder = json.loads
 encoding = "json"
@@ -107,5 +109,5 @@ def image_to_string(data):
 
 
 async def run_later(time, task):
-    await asynclib.sleep(time)
+    await anyio.sleep(time)
     return await task

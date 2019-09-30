@@ -26,7 +26,8 @@ import time
 
 import trio
 
-from ..models import ClientUser, Guild, Message, DMChannel, DMGroupChannel, DMCHANNEL, GROUPDMCHANNEL, Member
+from build.lib.pycord.models import User
+from ..models import ClientUser, Guild, Message, DMChannel, DMGroupChannel, DMCHANNEL, GROUPDMCHANNEL
 
 
 class EventHandler:
@@ -85,11 +86,10 @@ class EventHandler:
 
         # TODO: Check data and add to guild accordingly.
 
-
     async def handle_member_update(self, data):
         '''Handles a guild member update (nickname change, role add, etc...)'''
         return NotImplemented
-    
+
     async def handle_message_update(self, data):
-        '''Handles a message edit.''''
+        '''Handles a message edit.'''
         return NotImplemented

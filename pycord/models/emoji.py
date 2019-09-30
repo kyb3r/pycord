@@ -28,7 +28,7 @@ from ..utils import Collection
 
 
 class Emoji(Snowflake, Serializable):
-    __slots__ = ('guild', 'id', 'name', 'roles', 'client')
+    __slots__ = ('guild', 'id', 'name', 'roles', 'client', 'require_colons', 'managed')
 
     def __init__(self, guild, data=None):
         if data is None:
@@ -48,8 +48,8 @@ class Emoji(Snowflake, Serializable):
 
         for role in data.get('roles', []):
             if role:
-                if self.guild._roles.has(role):
-                    rolee = self.guild._roles.get(role)
+                if self.guild.roles.has(role):
+                    rolee = self.guild.roles.get(role)
                     self.roles.add(rolee)
 
     def delete(self, reason=None):

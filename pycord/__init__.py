@@ -8,9 +8,3 @@ from .client import Client
 from .models import *
 from .utils import *
 from .api import Webhook
-
-def init(lib):
-    import multio
-    import asks
-    multio.init(lib)
-    asks.init(lib)
