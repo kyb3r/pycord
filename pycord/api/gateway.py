@@ -1,26 +1,4 @@
-"""
-MIT License
 
-Copyright (c) 2017 Kyb3r
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-"""
 
 import platform
 import time
@@ -29,6 +7,7 @@ import zlib
 
 import asyncwebsockets
 import anyio
+import sniffio
 
 from ..api.events import EventHandler
 from ..utils import encoder, decoder
@@ -128,12 +107,11 @@ class ShardConnection:
 
         await self.send(self.IDENTIFY, payload)
 
-    async def read_data(self, nursery):
+    async def read_data(self, wrapped_websocket, nursery):
         """ Start reading data from websocket connection """
         if self.ws is None:
             return
-
-        async for event in self.ws:
+        async for event in wrapped_websocket:
             try:
                 # unpack data and save sequence number
                 try:
@@ -207,7 +185,12 @@ class ShardConnection:
         async with anyio.create_task_group() as nursery:
             while self.alive:
                 try:
-                    await self.read_data(nursery)
+                    if sniffio.current_async_library() == "curio":
+                        import curio.meta
+                        async with curio.meta.finalize(self.ws) as wrapped_websocket:
+                            await self.read_data(wrapped_websocket, nursery)
+                    else:
+                        await self.read_data(nursery)
                 except KeyboardInterrupt:
                     await self.close()
                     await self.client.running.set()

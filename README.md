@@ -18,8 +18,9 @@ You can easily install the pre-release of this library by doing `pip3 install py
 
 ```py
 import pycord
+import trio
 
-client = pycord.Client()
+client = pycord.Client('trio')
 
 @client.on('ready')
 async def on_ready(time):
@@ -42,7 +43,7 @@ async def stats(message):
  
 # easily register multiple events
 
-client.login('token')
+trio.run(client.login('token'))
 ```
 
 ### Quick Examples
