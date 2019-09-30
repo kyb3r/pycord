@@ -29,8 +29,9 @@ from collections import deque
 
 import anyio
 import asks
-import trio
 import sys
+
+import sniffio
 
 from .api import HttpClient, ShardConnection, Webhook
 from .models import Channel, Guild, User
@@ -87,11 +88,12 @@ class Client(Emitter):
 
     def __init__(self, library, shard_count=-1, prefixes='py.', message_cache_max=2500, **kwargs):
         super().__init__()
+        sniffio.current_async_library_cvar.set(library)
         asks.init(library)
         self.token = ''
         self.is_bot = True
         self._boot_up_time = None
-        self.running = trio.Event()
+        self.running = anyio.create_event()
         self.api = HttpClient(self)
         self.session = asks.Session()  # public session
         self.shards = [] if shard_count < 1 else list(range(shard_count))
@@ -109,14 +111,14 @@ class Client(Emitter):
             self.close()
 
     def wait_for_nonce(self, nonce):
-        event = anyio.Event()
+        event = anyio.create_event()
         self._nonces[str(nonce)] = event
         return event.wait()
 
     async def _close(self):
         for shard in self.shards:
             await shard.close()
-        self.running.set()
+        await self.running.set()
 
     async def close(self):
         await self._close()
@@ -141,11 +143,11 @@ class Client(Emitter):
             shard_count = len(self.shards)
 
         # spawn shard connections
-        async with trio.open_nursery() as nursery:
+        async with anyio.create_task_group() as nursery:
             for shard_id in range(shard_count):
                 shard = ShardConnection(self, shard_id, shard_count)
                 self.shards[shard_id] = shard
-                nursery.start_soon(shard.start, url)
+                await nursery.spawn(shard.start, url)
 
         # wait for client to stop running
         await self.running.wait()

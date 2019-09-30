@@ -1,6 +1,5 @@
 asks
 anyio
-trio
 asyncwebsockets
 Earl-ETF
 sniffio

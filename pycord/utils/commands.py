@@ -36,6 +36,7 @@ class Command:
         self.check = inspect.signature(self.callback).return_annotation
         self.signature = inspect.signature(self.callback).parameters.items()
 
+
 def cmd(name=None, *, callback=None, aliases=[]):
     if isinstance(aliases, str):
         aliases = [aliases]
@@ -49,7 +50,9 @@ def cmd(name=None, *, callback=None, aliases=[]):
                 raise RuntimeWarning('Callback is not a coroutine!')
             cmd = Command(name=name or coro.__name__, callback=coro, aliases=aliases)
             return cmd
+
         return wrapper
+
 
 class Context:
     def __init__(self, client, message):
@@ -133,7 +136,6 @@ class Context:
             await self.client.emit('command_error', e)
 
     async def get_arguments(self):
-
         signature = self.command.signature
         try:
             splitted = shlex.split(self.command_content, posix=False)

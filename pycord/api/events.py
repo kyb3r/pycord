@@ -24,7 +24,7 @@ SOFTWARE.
 
 import time
 
-import trio
+import anyio
 
 from build.lib.pycord.models import User
 from ..models import ClientUser, Guild, Message, DMChannel, DMGroupChannel, DMCHANNEL, GROUPDMCHANNEL
@@ -35,7 +35,7 @@ class EventHandler:
         self.shard = shard
         self.client = shard.client
         self.api = self.client.api
-        self.ready_event = trio.Event()
+        self.ready_event = anyio.create_event()
 
     async def handle_ready(self, data):
         self.client.user = ClientUser(self.client, data)
@@ -71,7 +71,7 @@ class EventHandler:
             self.client.guilds.add(guild)
 
         if not any(g.unavailable for g in self.client.guilds):
-            self.ready_event.set()
+            await self.ready_event.set()
 
     async def handle_member_join(self, data):
         '''Handles the event when a member joins a guild.'''

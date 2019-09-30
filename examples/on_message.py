@@ -23,14 +23,14 @@ SOFTWARE.
 """
 
 import pycord
+import trio
 
 """
 Example showing off how beautiful 
 the design of this api wrapper is ;)
 """
 
-pycord.init("trio")
-client = pycord.Client()
+client = pycord.Client('trio')
 
 
 @client.on('ready')
@@ -47,4 +47,4 @@ async def ping_command(message):
         await message.reply('Pong!')
 
 
-client.login('token')
+trio.run(client.login, 'token')

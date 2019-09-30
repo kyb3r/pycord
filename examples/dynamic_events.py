@@ -31,6 +31,7 @@ import trio
 async def message_handler(msg):
     print("This event was registered in __init__ and doesn't have to be part of my client class")
 
+
 class MyBot(pycord.Client):
     """
     Example of dynamic event registration
@@ -57,4 +58,4 @@ class MyBot(pycord.Client):
 
 if __name__ == '__main__':
     client = MyBot()
-    trio.run(client.login, 'NTg5OTMxNDIwNTA0MjkzMzk5.XZFIQw.3FmrlCRKjbB0yUrh-xXVYLYYz8U')
+    trio.run(client.login, 'token')

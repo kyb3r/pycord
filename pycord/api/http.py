@@ -29,7 +29,6 @@ from urllib.parse import quote
 
 import anyio
 import asks
-import trio
 
 from .. import __version__, __github__
 from ..utils import API, run_later, encoder, decoder, id_now
@@ -61,13 +60,13 @@ class GlobalLock:
         self.is_global = is_global
         self.global_event = global_event
 
-    def __enter__(self):
+    async def __aenter__(self):
         if self.is_global:
             self.global_event.clear()
 
-    def __exit__(self, *args):
+    async def __aexit__(self, *args):
         if self.is_global:
-            self.global_event.set()
+            await self.global_event.set()
 
 
 class HttpClient:
@@ -75,8 +74,8 @@ class HttpClient:
         self.client = client
         self.token = client.token
         self.retries = 5
-        self.buckets = defaultdict(trio.Lock)
-        self.global_event = trio.Event()
+        self.buckets = defaultdict(anyio.create_lock)
+        self.global_event = anyio.create_event()
 
         # set global lock and create user agent
         user_agent = 'DiscordBot ({0} {1}) Python/{2[0]}.{2[1]}'
@@ -150,7 +149,7 @@ class HttpClient:
 
         # open http request with retries
         async with HoldableLock(lock) as hold_lock:
-            async with trio.open_nursery() as nursery:
+            async with anyio.create_task_group() as nursery:
                 for tries in range(self.retries):
                     resp = await self.session.request(method, endpoint, headers=headers, data=data, json=_json)
 
@@ -164,15 +163,15 @@ class HttpClient:
                     if remaining == '0' and resp.status_code != 429:
                         hold_lock.hold()
                         delay = int(resp.headers.get('X-Ratelimit-Reset')) - time.time()
-                        nursery.start_soon(run_later, delay, lock.release())
+                        await nursery.spawn(run_later, delay, lock.release())
 
                     # check if route IS rate limited
                     elif resp.status_code == 429:
-                        with GlobalLock(self.global_event, data.get('global', False)):
+                        async with GlobalLock(self.global_event, data.get('global', False)):
 
                             # wait for rate limit delay delay
                             retry_after = data.get('retry-after', 0)
-                            await trio.sleep(retry_after / 1000.0)
+                            await anyio.sleep(retry_after / 1000.0)
 
                         # retry request
                         continue
@@ -191,7 +190,7 @@ class HttpClient:
 
                     # service is down, wait a bit and retry later
                     elif resp.status_code in (500, 502):
-                        await trio.sleep(1 + tries * 2)
+                        await anyio.sleep(1 + tries * 2)
                         continue
 
                     # unknown http error
