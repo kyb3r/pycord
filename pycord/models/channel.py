@@ -1,5 +1,3 @@
-
-
 from ..models.core import Snowflake, Serializable
 from abc import ABC
 from .embed import Embed

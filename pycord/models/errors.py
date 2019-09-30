@@ -1,5 +1,3 @@
-
-
 class HttpError(Exception):
 
     def __init__(self, response, data):
@@ -13,6 +11,3 @@ class HttpError(Exception):
         fmt = '{0.reason} ({0.status}): {0.message}'
 
         super().__init__(fmt.format(self))
-
-
-

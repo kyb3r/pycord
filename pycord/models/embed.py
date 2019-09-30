@@ -1,5 +1,3 @@
-
-
 from .core import Serializable
 from ..utils import parse_time
 
@@ -92,5 +90,5 @@ class Embed(Serializable):
         ts = d.get('timestamp')
         if ts:
             d['timestamp'] = ts.isoformat()
-        
+
         return d

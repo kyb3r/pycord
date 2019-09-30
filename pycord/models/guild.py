@@ -1,5 +1,3 @@
-
-
 from ..models.channel import (Channel, TextChannel, VoiceChannel,
                               CategoryChannel, TEXTCHANNEL, VOICECHANNEL)
 from ..models.core import Snowflake, Serializable

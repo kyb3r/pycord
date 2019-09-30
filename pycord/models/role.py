@@ -1,5 +1,3 @@
-
-
 from ..models.core import Snowflake, Serializable
 from ..models.perms import Permissions
 

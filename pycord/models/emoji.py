@@ -1,5 +1,3 @@
-
-
 from .core import Snowflake, Serializable
 from ..models.role import Role
 from ..utils import Collection

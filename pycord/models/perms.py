@@ -1,6 +1,3 @@
-
-
-
 class Permissions:
 
     __slots__ = ('value')

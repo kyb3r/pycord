@@ -1,8 +1,7 @@
-
-
 from abc import ABC, abstractmethod
 from itertools import chain
 from ..utils import id_to_time
+
 
 class Snowflake(ABC):
     """ Base Discord Object : everything will probably inherit from this """

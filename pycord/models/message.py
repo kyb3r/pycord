@@ -1,6 +1,3 @@
-
-
-
 from ..models.core import Snowflake, Serializable
 from ..models.channel import GUILD_CHANNELS
 from ..models.embed import Embed
@@ -44,12 +41,8 @@ class Message(Snowflake):
             self.webhook_id = wh_id
         self.type = data.get("type", 0)
 
-    def reply(self, content: str=None, **kwargs):
+    def reply(self, content: str = None, **kwargs):
         return self.channel.send(content, **kwargs)
 
     def delete(self):
         return self.client.api.delete_message(self.channel, self)
-
-
-
-
