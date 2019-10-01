@@ -1,5 +1,5 @@
 asks
-anyio
+multio
+https://github.com/python-trio/trio/archive/master.zip
 asyncwebsockets
 Earl-ETF
-sniffio
