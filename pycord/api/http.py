@@ -1,10 +1,34 @@
+"""
+MIT License
+
+Copyright (c) 2017 Kyb3r
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
 import sys
 import time
 from collections import defaultdict
 from urllib.parse import quote
 
-import anyio
 import asks
+import trio
 
 from .. import __version__, __github__
 from ..utils import API, run_later, encoder, decoder, id_now
@@ -26,9 +50,7 @@ class HoldableLock:
 
     async def __aexit__(self, *args):
         if self.unlock:
-            rel = self.lock.release()
-            if rel is not None:
-                await rel
+            self.lock.release()
 
 
 class GlobalLock:
@@ -38,13 +60,13 @@ class GlobalLock:
         self.is_global = is_global
         self.global_event = global_event
 
-    async def __aenter__(self):
+    def __enter__(self):
         if self.is_global:
             self.global_event.clear()
 
-    async def __aexit__(self, *args):
+    def __exit__(self, *args):
         if self.is_global:
-            await self.global_event.set()
+            self.global_event.set()
 
 
 class HttpClient:
@@ -52,8 +74,8 @@ class HttpClient:
         self.client = client
         self.token = client.token
         self.retries = 5
-        self.buckets = defaultdict(anyio.create_lock)
-        self.global_event = anyio.create_event()
+        self.buckets = defaultdict(trio.Lock)
+        self.global_event = trio.Event()
 
         # set global lock and create user agent
         user_agent = 'DiscordBot ({0} {1}) Python/{2[0]}.{2[1]}'
@@ -127,7 +149,7 @@ class HttpClient:
 
         # open http request with retries
         async with HoldableLock(lock) as hold_lock:
-            async with anyio.create_task_group() as nursery:
+            async with trio.open_nursery() as nursery:
                 for tries in range(self.retries):
                     resp = await self.session.request(method, endpoint, headers=headers, data=data, json=_json)
 
@@ -141,15 +163,15 @@ class HttpClient:
                     if remaining == '0' and resp.status_code != 429:
                         hold_lock.hold()
                         delay = int(resp.headers.get('X-Ratelimit-Reset')) - time.time()
-                        await nursery.spawn(run_later, delay, lock.release())
+                        nursery.start_soon(run_later, delay, lock.release())
 
                     # check if route IS rate limited
                     elif resp.status_code == 429:
-                        async with GlobalLock(self.global_event, data.get('global', False)):
+                        with GlobalLock(self.global_event, data.get('global', False)):
 
                             # wait for rate limit delay delay
                             retry_after = data.get('retry-after', 0)
-                            await anyio.sleep(retry_after / 1000.0)
+                            await trio.sleep(retry_after / 1000.0)
 
                         # retry request
                         continue
@@ -168,7 +190,7 @@ class HttpClient:
 
                     # service is down, wait a bit and retry later
                     elif resp.status_code in (500, 502):
-                        await anyio.sleep(1 + tries * 2)
+                        await trio.sleep(1 + tries * 2)
                         continue
 
                     # unknown http error
@@ -192,6 +214,7 @@ class HttpClient:
 
         await self.post(route, data=payload)
         await self.client.wait_for_nonce(nonce)
+        print("done waiting!")
 
     def send_typing(self, channel):
         route = '/channels/{.id}/typing'.format(channel)

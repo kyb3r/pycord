@@ -1,4 +1,26 @@
+"""
+MIT License
 
+Copyright (c) 2017 verixx / king1600
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
 
 import inspect
 import shlex
@@ -14,7 +36,6 @@ class Command:
         self.check = inspect.signature(self.callback).return_annotation
         self.signature = inspect.signature(self.callback).parameters.items()
 
-
 def cmd(name=None, *, callback=None, aliases=[]):
     if isinstance(aliases, str):
         aliases = [aliases]
@@ -28,9 +49,7 @@ def cmd(name=None, *, callback=None, aliases=[]):
                 raise RuntimeWarning('Callback is not a coroutine!')
             cmd = Command(name=name or coro.__name__, callback=coro, aliases=aliases)
             return cmd
-
         return wrapper
-
 
 class Context:
     def __init__(self, client, message):
@@ -114,6 +133,7 @@ class Context:
             await self.client.emit('command_error', e)
 
     async def get_arguments(self):
+
         signature = self.command.signature
         try:
             splitted = shlex.split(self.command_content, posix=False)

@@ -1,6 +1,6 @@
 <div align="center">
         <p> <img src="https://i.imgur.com/tDy4yb4.png"/> </p>
-        <p><i><b>NOTE: This is a not-entirely-dead project.</b></i></p>
+        <p><i><b>NOTE: This is a dead project.</b></i></p>
 	<p> 
 		<a href="https://discord.gg/Q8kuctn"><img src="https://discordapp.com/api/guilds/363717307660369921/embed.png" alt="" /></a>
 		<img src="https://img.shields.io/badge/python-3.6-brightgreen.svg" alt="python 3.6" />
@@ -18,9 +18,8 @@ You can easily install the pre-release of this library by doing `pip3 install py
 
 ```py
 import pycord
-import trio
 
-client = pycord.Client('trio')
+client = pycord.Client()
 
 @client.on('ready')
 async def on_ready(time):
@@ -43,7 +42,7 @@ async def stats(message):
  
 # easily register multiple events
 
-trio.run(client.login('token'))
+client.login('token')
 ```
 
 ### Quick Examples

@@ -1,26 +1,17 @@
-import pycord
-import trio
+import pycord 
+import multio
 
-client = pycord.Client('trio', prefixes='a.')
-
+client = pycord.Client()
 
 @client.on('ready')
 async def ready(time):
     print('ready')
 
-
-@client.on('message')
-async def on_message(msg):
-    await client.process_commands(msg)
-
-
 def is_owner(ctx):
-    return ctx.author.id == 122739797646245899
-
+    return ctx.author.id == 319395783847837696
 
 @client.cmd('ping')
 async def ping(ctx) -> is_owner:
-    await ctx.reply('Pong!')
+    await ctx.send('Pong!')
 
-
-trio.run(client.login, 'token')
+client.login("token")
