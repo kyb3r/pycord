@@ -1,36 +1,13 @@
-"""
-MIT License
-
-Copyright (c) 2017 verixx / king1600
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-"""
-
 import inspect
 import time
 import traceback
 from collections import deque
 
+import anyio
 import asks
-import trio
 import sys
-import multio
+
+import sniffio
 
 from .api import HttpClient, ShardConnection, Webhook
 from .models import Channel, Guild, User
@@ -85,13 +62,13 @@ class Client(Emitter):
 
     """
 
-    def __init__(self, shard_count=-1, prefixes='py.', message_cache_max=2500, **kwargs):
+    def __init__(self, library, shard_count=-1, prefixes='py.', message_cache_max=2500, **kwargs):
         super().__init__()
-        self.async_init()
+        sniffio.current_async_library_cvar.set(library)
         self.token = ''
         self.is_bot = True
         self._boot_up_time = None
-        self.running = trio.Event()
+        self.running = anyio.create_event()
         self.api = HttpClient(self)
         self.session = asks.Session()  # public session
         self.shards = [] if shard_count < 1 else list(range(shard_count))
@@ -103,27 +80,24 @@ class Client(Emitter):
         self.webhooks = Collection(Webhook, indexor='name')
         self.prefixes = prefixes if isinstance(prefixes, list) else [prefixes]
         self._nonces = dict()
+        self.user = None
 
     def __del__(self):
         if self.is_bot:
             self.close()
-    
-    def async_init(self):
-        multio.init('trio')
-        asks.init('trio')
 
     def wait_for_nonce(self, nonce):
-        event = multio.Event()
+        event = anyio.create_event()
         self._nonces[str(nonce)] = event
         return event.wait()
 
     async def _close(self):
         for shard in self.shards:
             await shard.close()
-        self.running.set()
+        await self.running.set()
 
-    def close(self):
-        trio.run(self._close)
+    async def close(self):
+        await self._close()
 
     async def start(self, token, bot):
         self.token = self.api.token = token
@@ -145,23 +119,23 @@ class Client(Emitter):
             shard_count = len(self.shards)
 
         # spawn shard connections
-        async with trio.open_nursery() as nursery:
+        async with anyio.create_task_group() as nursery:
             for shard_id in range(shard_count):
                 shard = ShardConnection(self, shard_id, shard_count)
                 self.shards[shard_id] = shard
-                nursery.start_soon(shard.start, url)
+                await nursery.spawn(shard.start, url)
 
         # wait for client to stop running
         await self.running.wait()
 
-    def login(self, token, bot=True):
+    async def login(self, token, bot=True):
         self._boot_up_time = time.time()
         try:
-            trio.run(self.start, token, bot)
+            await self.start(token, bot)
         except KeyboardInterrupt:
             pass
         finally:
-            self.close()
+            await self.close()
 
     async def on_error(self, error):
         """Default error handler for events"""
@@ -192,6 +166,7 @@ class Client(Emitter):
                 cmd = Command(name=name or coro.__name__, callback=coro, aliases=aliases)
                 self.commands.add(cmd)
                 return cmd
+
             return wrapper
 
     def add_webhook(self, name, url, **fields):

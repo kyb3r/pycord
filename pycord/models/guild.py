@@ -1,27 +1,3 @@
-"""
-MIT License
-
-Copyright (c) 2017 verixx / king1600
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-"""
-
 from ..models.channel import (Channel, TextChannel, VoiceChannel,
                               CategoryChannel, TEXTCHANNEL, VOICECHANNEL)
 from ..models.core import Snowflake, Serializable
@@ -30,12 +6,13 @@ from ..models.role import Role
 from ..models.user import Member, User
 from ..utils import Collection
 
+
 class Game:
     def __init__(self, game):
         self.name = game.get('name')
         self.type = game.get('type')
         # TODO: Enum for type
-    
+
     def __str__(self):
         types = {
             0: 'Playing',
@@ -45,6 +22,7 @@ class Game:
         }
         return f'{types.get(self.type)} {self.name}'
 
+
 class Guild(Snowflake, Serializable):
     __slots__ = (
         'members', 'channels', 'emojis', 'roles',
@@ -53,6 +31,7 @@ class Guild(Snowflake, Serializable):
         'default_role', 'member_count', 'large',
         'owner_id', 'mfa_level', 'features', 'client',
         'verification_level', 'explicit_content_filter', 'splash',
+        'owner'
     )
 
     def __init__(self, client, data=None):
@@ -91,7 +70,7 @@ class Guild(Snowflake, Serializable):
         self.unavailable = data.get('unavailable', True)
         self.verification_level = data.get('verification_level')
         self.explicit_content_filter = data.get('explicit_content_filter', False)
-        self.owner_id = int(data.get('owner_id'))
+        self.owner_id = int(data.get('owner_id') or 0)
 
         for channel_data in data.get('channels', []):
             chan_type = channel_data.get('type', 0)
@@ -121,7 +100,7 @@ class Guild(Snowflake, Serializable):
                     user = self.client.users.get(user_id)
 
             self.members.add(Member(self.client, self, user, member))
-        
+
         for presence in data.get('presences', []):
             member = self.members.get(int(presence['user']['id']))
             if member is None:
@@ -129,17 +108,16 @@ class Guild(Snowflake, Serializable):
             game = presence.get('game')
             member.game = Game(game) if game else None
             member.status = presence.get('status')
-            # print(member.status)
             if not member.bot:
                 member.user.status = member.status
                 member.user.game = member.game
 
         self.owner = self.members.get(self.owner_id)
-    
+
     @property
     def icon_url(self):
         return self.icon_url_as()
-    
+
     def icon_url_as(self, format='png', size=1024):
         return 'https://cdn.discordapp.com/icons/{0.id}/{0.icon}.{1}?size={2}'.format(self, format, size)
 

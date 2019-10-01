@@ -1,34 +1,11 @@
-"""
-MIT License
-
-Copyright (c) 2017 Kyb3r
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-"""
-
 import platform
 import time
 import traceback
 import zlib
 
 import asyncwebsockets
-import trio
+import anyio
+import sniffio
 
 from ..api.events import EventHandler
 from ..utils import encoder, decoder
@@ -80,7 +57,7 @@ class ShardConnection:
     async def send(self, op=DISPATCH, d=None):
         if self.ws is not None:
             data = encoder({'op': op, 'd': d})
-            await self.ws.send_message(data)
+            await self.ws.send(data)
 
     async def ping(self, data=None):
         start = time.time()
@@ -89,12 +66,12 @@ class ShardConnection:
         return (time.time() - start) * 1000., data
 
     async def heartbeat(self, interval, nursery):
-        await trio.sleep(interval)
+        await anyio.sleep(interval)
         if self.ws is not None:
             if self.heartbeat_acked:
                 self.heartbeat_acked = False
                 await self.send(self.HEARTBEAT, self.sequence)
-                nursery.start_soon(self.heartbeat, interval, nursery)
+                await nursery.spawn(self.heartbeat, interval, nursery)
             else:
                 await self.ws.close()
 
@@ -132,16 +109,13 @@ class ShardConnection:
         """ Start reading data from websocket connection """
         if self.ws is None:
             return
-
-        while True:
+        async for event in self.ws:
             try:
                 # unpack data and save sequence number
                 try:
-                    data = (await self.ws.next_message()).data
+                    data = event.data
                 except:
-                    await self.close()
-                    self.client.running.set()
-                    break
+                    return
                 if isinstance(data, bytes):
                     data = zlib.decompress(data, 15, 10490000).decode('utf-8')
                 data = decoder(data)
@@ -150,12 +124,8 @@ class ShardConnection:
                 await self.client.emit('raw_data', data)
                 await self.handle_data(data, nursery)
 
-            # ignore websocket close exception
-            except asyncwebsockets.WebsocketClosed:
-                break
-
-            # ignore asyncio cancellation exceptions
-            except trio.Cancelled:
+            # ignore cancellation exceptions
+            except anyio.get_cancelled_exc_class():
                 break
 
             # handle any exceptions
@@ -180,13 +150,13 @@ class ShardConnection:
         # start session
         elif op == self.HELLO:
             interval = (data['heartbeat_interval'] - 100) / 1000.0
-            nursery.start_soon(self.heartbeat, interval, nursery)
+            await nursery.spawn(self.heartbeat, interval, nursery)
             await self.identify()
 
         # retry connecting if possible
         elif op == self.INVALID_SESSION:
             if data:
-                await trio.sleep(5.0)
+                await anyio.sleep(5.0)
                 await self.ws.close()
             else:
                 self.sequence = None
@@ -196,8 +166,8 @@ class ShardConnection:
         # handle gateway events
         elif op == self.DISPATCH:
             handle = 'handle_{}'.format(event.lower())
-            if hasattr(self.handler, handle):       
-                nursery.start_soon(getattr(self.handler, handle), data)
+            if hasattr(self.handler, handle):
+                await nursery.spawn(getattr(self.handler, handle), data)
 
     async def start(self, url):
         """ Start long-term connection with gateway """
@@ -206,15 +176,23 @@ class ShardConnection:
         url += API.WS_ENDPOINT
 
         # start connection loop
-        self.ws = await asyncwebsockets.connect_websocket(url)
+        self.ws = await asyncwebsockets.create_websocket(url)
 
-        async with trio.open_nursery() as nursery:
+        async with anyio.create_task_group() as nursery:
             while self.alive:
                 try:
-                    await self.read_data(nursery)
+                    if sniffio.current_async_library() == "curio":
+                        import curio.meta
+                        async with curio.meta.finalize(self.ws):
+                            await self.read_data(nursery)
+                    else:
+                        await self.read_data(nursery)
                 except KeyboardInterrupt:
                     await self.close()
-                    self.client.running.set()
+                    await self.client.running.set()
+                    break
                 except Exception as e:
                     await self.client.emit('error', e)
-
+                finally:
+                    self.ws.close()
+                    self.ws = await asyncwebsockets.create_websocket(url)
